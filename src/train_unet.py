@@ -24,7 +24,6 @@ def train(
 
     dataloader = get_dataloader(low_quality_path, high_quality_path, batch_size=batch_size)  # Crea el dataloader
 
-    best_loss = float('inf')
 
     for epoch in range(epochs):  # Ajusta el número de epochs
         for inputs, labels in dataloader:
