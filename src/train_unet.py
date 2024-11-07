@@ -1,6 +1,7 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
+import os
 from processing.unet_model import UNet
 from processing.data_loader_funcional  import get_dataloader
 
@@ -16,9 +17,9 @@ def train(
     optimizer_class=optim.Adam, #  Define el optimizador (Adam)
     learning_rate=0.001         # tasa de aprendizaje (learning rate) de 0.001
 ):
-    model = UNet(depth=unet_depth, wf=unet_wf, up_mode=unet_up_mode) # Modificar la arquitectura
-    criterion = loss_function   # Cambia la función de pérdida a MSE para denoising
-    optimizer = optimizer_class(model.parameters(), lr=learning_rate)
+    model = UNet() # Modificar la arquitectura   depth=unet_depth, wf=unet_wf, up_mode=unet_up_mode
+    criterion = nn.MSELoss() # criterion = loss_function   # Cambia la función de pérdida a MSE para denoising
+    optimizer = optim.Adam(model.parameters(), lr=0.001) # optimizer = optimizer_class(model.parameters(), lr=learning_rate)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # Selecciona el dispositivo (GPU si está disponible, sino CPU)
     model.to(device)
 
@@ -40,8 +41,9 @@ def train(
 
 if __name__ == "__main__":
     # Define las rutas a tus datos
-    low_quality_path = "path/to/low_quality_frames"
-    high_quality_path = "path/to/high_quality_frames"
+    files_dir = "data/train"
+    low_quality_path = os.path.join(files_dir, "train_low")
+    high_quality_path = os.path.join(files_dir, "train_high")
 
     #  Configura los parámetros del entrenamiento (experimenta con valores desde aqui, no tomar la funcion)
     epochs = 20
@@ -51,7 +53,7 @@ if __name__ == "__main__":
     unet_wf = 6
     unet_up_mode = 'upconv' #upconv y upsample
     loss_function = nn.MSELoss() #Investigar cambios de funcion de perdida, actualmente MSELoss y L1Loss
-    optimizer_class = optim.RMSprop
+    optimizer_class = optim.Adam
 
     train(
         low_quality_path,
