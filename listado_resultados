@@ -1,0 +1,43 @@
+Test 08/11/2024
+-Escenario: dust_2
+-Cantidad de fotogramas: 5942
+-epochs = 20
+-batch_size = 8
+-learning_rate = 0.001
+-loss_function = MSELoss
+-optimizer_class= Adam
+-Unet configuracion: Default.
+-Tiempo de entrenamiento: 4 horas aprox
+
+Resultados:
+Epoch 1, Loss: 0.1859402060508728
+Epoch 2, Loss: 0.5930402874946594
+Epoch 3, Loss: 0.16634583473205566
+Epoch 4, Loss: 0.19101865589618683
+Epoch 5, Loss: 0.1486932635307312
+Epoch 6, Loss: 0.09582243859767914
+Epoch 7, Loss: 0.14698973298072815
+Epoch 8, Loss: 0.21881595253944397
+Epoch 9, Loss: 0.1261269450187683
+Epoch 10, Loss: 0.1838550865650177
+Epoch 11, Loss: 0.05228199064731598
+Epoch 12, Loss: 0.4356427788734436
+Epoch 13, Loss: 0.21252581477165222
+Epoch 14, Loss: 0.11480371654033661
+Epoch 15, Loss: 0.3759574890136719
+Epoch 16, Loss: 0.056870609521865845
+Epoch 17, Loss: 0.05328604206442833
+Epoch 18, Loss: 0.5419340133666992
+Epoch 19, Loss: 0.17056645452976227
+(Lo cancele sin querer tras 4 horas, no usar el CMD mientras corre)
+
+Test 08/11/2024
+-Escenario: dust_2
+-Cantidad de fotogramas: 5942
+-epochs = 20
+-batch_size = 8
+-learning_rate = 0.0001
+-loss_function = MSELoss
+-optimizer_class= Adam
+-Unet configuracion: Default.
+-Tiempo de entrenamiento: 4 horas aprox

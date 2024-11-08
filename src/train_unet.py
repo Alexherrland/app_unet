@@ -19,7 +19,7 @@ def train(
 ):
     model = UNet() # Modificar la arquitectura   depth=unet_depth, wf=unet_wf, up_mode=unet_up_mode
     criterion = nn.MSELoss() # criterion = loss_function   # Cambia la función de pérdida a MSE para denoising
-    optimizer = optim.Adam(model.parameters(), lr=0.001) # optimizer = optimizer_class(model.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(model.parameters(), lr=0.0001) # optimizer = optimizer_class(model.parameters(), lr=learning_rate)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # Selecciona el dispositivo (GPU si está disponible, sino CPU)
     model.to(device)
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     #  Configura los parámetros del entrenamiento (experimenta con valores desde aqui, no tomar la funcion)
     epochs = 20
     batch_size = 8
-    learning_rate = 0.0005
+    learning_rate = 0.0001
     unet_depth = 5
     unet_wf = 6
     unet_up_mode = 'upconv' #upconv y upsample
