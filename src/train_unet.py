@@ -46,7 +46,7 @@ if __name__ == "__main__":
     high_quality_path = os.path.join(files_dir, "train_high")
 
     #  Configura los parámetros del entrenamiento (experimenta con valores desde aqui, no tomar la funcion)
-    epochs = 20
+    epochs = 50
     batch_size = 8
     learning_rate = 0.0001
     unet_depth = 5
