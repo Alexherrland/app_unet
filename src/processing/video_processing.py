@@ -4,18 +4,20 @@ import torch
 import torchvision.transforms as transforms
 import numpy as np
 from unet_model import UNet
+from tqdm import tqdm
 
 def process_video(input_video_path, output_video_path="output.mp4"):  # Agregar output path como parámetro
     cap = cv2.VideoCapture(input_video_path)  # Abre el video enviado de process_video_file()
     fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height)) # Usar dimensiones originales, investigar si es posible reescalar de 4:3 a 16:9 sin perder calidad, y ver si hacer antes o despues del modelo
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = UNet()
-    model.load_state_dict(torch.load('unet_model.pth', map_location=device)) # Cargar modelo en grafica o CPU, falta ver si se usara solo un modelo global o uno para cada mapa, haría falta para eso una forma de detectar el mapa previamente, de momento, intentare un solo modelo
+    model.load_state_dict(torch.load('models/unet_model_dust2_v1.pth', map_location=device)) # Cargar modelo en grafica o CPU, falta ver si se usara solo un modelo global o uno para cada mapa, haría falta para eso una forma de detectar el mapa previamente, de momento, intentare un solo modelo
     model.to(device)
     model.eval()
 
@@ -26,6 +28,8 @@ def process_video(input_video_path, output_video_path="output.mp4"):  # Agregar 
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
+    pbar = tqdm(total=total_frames, desc="Procesando video")
+    frame_count = 0
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -34,6 +38,10 @@ def process_video(input_video_path, output_video_path="output.mp4"):  # Agregar 
         frame_processed = apply_unet_to_frame(frame, model, transform, device) # Pasar transformaciones y device
         out.write(frame_processed)
 
+        frame_count += 1
+        pbar.update(1)
+
+    pbar.close()
     cap.release()
     out.release()
     return output_video_path
