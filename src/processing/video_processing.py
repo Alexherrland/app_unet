@@ -1,5 +1,6 @@
 # video_processing.py
 import cv2
+import os  
 import torch
 import torchvision.transforms as transforms
 import numpy as np
@@ -7,13 +8,27 @@ from unet_model import UNet
 from tqdm import tqdm
 
 def process_video(input_video_path, output_video_path="output.mp4"):  # Agregar output path como parámetro
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_video_path = os.path.join(script_dir, "video_procesado.mp4")
+
+    print(f"Ruta de entrada: {input_video_path}")
+    print(f"Ruta de salida: {output_video_path}")
+    print(f"Ruta de salida absoluta: {os.path.abspath(output_video_path)}")
+
     cap = cv2.VideoCapture(input_video_path)  # Abre el video enviado de process_video_file()
     fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+  
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height)) # Usar dimensiones originales, investigar si es posible reescalar de 4:3 a 16:9 sin perder calidad, y ver si hacer antes o despues del modelo
+    
+    if not out.isOpened():
+        print("Error: No se pudo crear el archivo de salida")
+        return None
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = UNet()
@@ -44,7 +59,11 @@ def process_video(input_video_path, output_video_path="output.mp4"):  # Agregar 
     pbar.close()
     cap.release()
     out.release()
-    return output_video_path
+    if os.path.exists(output_video_path):
+        return output_video_path
+    else:
+        print("Error: El archivo de salida no se creó correctamente")
+        return None
 
 
 def apply_unet_to_frame(frame, model, transform, device): # Recibir transformaciones y device
