@@ -1,6 +1,7 @@
 #Ignorar archivos de entrenamiento
 data/train/train_high/
 data/train/train_low/
+models/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -17,6 +17,7 @@ def train(
     optimizer_class=optim.Adam, #  Define el optimizador (Adam)
     learning_rate=0.001         # tasa de aprendizaje (learning rate) de 0.001
 ):
+    
     model = UNet() # Modificar la arquitectura   depth=unet_depth, wf=unet_wf, up_mode=unet_up_mode
     criterion = nn.MSELoss() # criterion = loss_function   # Cambia la función de pérdida a MSE para denoising
     optimizer = optim.Adam(model.parameters(), lr=0.0001) # optimizer = optimizer_class(model.parameters(), lr=learning_rate)
@@ -46,7 +47,7 @@ if __name__ == "__main__":
     high_quality_path = os.path.join(files_dir, "train_high")
 
     #  Configura los parámetros del entrenamiento (experimenta con valores desde aqui, no tomar la funcion)
-    epochs = 50
+    epochs = 150
     batch_size = 8
     learning_rate = 0.0001
     unet_depth = 5

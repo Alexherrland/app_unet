@@ -32,13 +32,13 @@ def process_video(input_video_path, output_video_path="output.mp4"):  # Agregar 
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = UNet()
-    model.load_state_dict(torch.load('models/unet_model_dust2_v1.pth', map_location=device)) # Cargar modelo en grafica o CPU, falta ver si se usara solo un modelo global o uno para cada mapa, haría falta para eso una forma de detectar el mapa previamente, de momento, intentare un solo modelo
+    model.load_state_dict(torch.load('models/unet_model_inferno_v2.pth', map_location=device)) # Cargar modelo en grafica o CPU, falta ver si se usara solo un modelo global o uno para cada mapa, haría falta para eso una forma de detectar el mapa previamente, de momento, intentare un solo modelo
     model.to(device)
     model.eval()
 
     transform = transforms.Compose([
         transforms.ToPILImage(),
-        transforms.Resize((256, 256)),  # Redimensionar para el modelo
+        transforms.Resize((400, 400)),  # Redimensionar para el modelo
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
@@ -66,18 +66,33 @@ def process_video(input_video_path, output_video_path="output.mp4"):  # Agregar 
         return None
 
 
-def apply_unet_to_frame(frame, model, transform, device): # Recibir transformaciones y device
+prev_frame_processed = None  # Inicializa como None
+
+
+def apply_unet_to_frame(frame, model, transform, device, alpha=0.7): # Recibir transformaciones y device
+    global prev_frame_processed  # Referencia a la variable global para mantener consistencia
+    
+    # Convertir el frame de BGR a RGB
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     frame_tensor = transform(frame_rgb).unsqueeze(0).to(device)
 
     with torch.no_grad():
+        # Realizar la predicción del modelo
         output = model(frame_tensor)
 
+    # Procesar la salida del modelo
     output = output.squeeze(0).permute(1, 2, 0)
-    output = torch.clamp(output, 0, 1)
-    output = output.cpu().detach().numpy() # Usar detach() para evitar problemas de memoria
-    output = (output * 255).astype(np.uint8)
-    output = cv2.cvtColor(output, cv2.COLOR_RGB2BGR)
-    output = cv2.resize(output, (frame.shape[1], frame.shape[0])) # Redimensionar de vuelta al tamaño original
+    output = (output - output.min()) / (output.max() - output.min())  # Normalización
+    output = output.cpu().detach().numpy()  # Convertir a numpy
+    output = (output * 255).astype(np.uint8)  # Escalar a rango [0, 255]
+    output = cv2.cvtColor(output, cv2.COLOR_RGB2BGR)  # Convertir de vuelta a BGR
+    output = cv2.resize(output, (frame.shape[1], frame.shape[0]))  # Ajustar al tamaño original
+
+    # Suavizado temporal para reducir flashes
+    if prev_frame_processed is not None:
+        output = cv2.addWeighted(output, alpha, prev_frame_processed, 1 - alpha, 0)
+
+    # Actualizar el frame procesado previo
+    prev_frame_processed = output
 
     return output
