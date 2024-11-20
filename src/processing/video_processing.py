@@ -69,7 +69,7 @@ def process_video(input_video_path, output_video_path="output.mp4"):  # Agregar 
 prev_frame_processed = None  # Inicializa como None
 
 
-def apply_unet_to_frame(frame, model, transform, device, alpha=0.7): # Recibir transformaciones y device
+def apply_unet_to_frame(frame, model, transform, device, alpha=1): # Recibir transformaciones y device
     global prev_frame_processed  # Referencia a la variable global para mantener consistencia
     
     # Convertir el frame de BGR a RGB

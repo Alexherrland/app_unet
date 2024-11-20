@@ -7,3 +7,4 @@ tqdm
 wandb
 opencv-python-headless
 ffmpeg-python
+scikit-image

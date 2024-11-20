@@ -155,3 +155,10 @@ Epoch 47, Loss: 0.1579805612564087
 Epoch 48, Loss: 0.035908617079257965
 Epoch 49, Loss: 0.07188526540994644
 Epoch 50, Loss: 0.02653302438557148
+
+
+Cambios en la unet respecto a los anteriores modelos:
+-Se va a probar con el padding en True, si veo que se producen artefactos en los bordes, desactivarlo
+-Voy a probar con el batch normalization en true, si veo que empeora, ponerlo en falso
+-de momento el alpha se dejara en 1, mas adelante probare con diferentes valores
+-Se ha añadido metodos de evaluacion
