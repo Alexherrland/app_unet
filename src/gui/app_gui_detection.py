@@ -35,9 +35,13 @@ def process_video_file():
         try:
             # Detectar el mapa del video
             mapas_referencia = {
-                "Dust2": cv2.imread("dust2_referencia.jpg"),
-                "Mirage": cv2.imread("mirage_referencia.jpg"),
-                # ... otros mapas ...
+                "Dust2": [
+                    cv2.imread("dust2_referencia1.jpg"),
+                    cv2.imread("dust2_referencia2.jpg")
+                ],
+                "Mirage": [
+                    cv2.imread("mirage_referencia1.jpg")
+                ]
             }
             mapa_detectado = detectar_mapa(input_video_path, mapas_referencia)
 

@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from skimage.metrics import structural_similarity 
 
 def detectar_mapa(video_path, mapas_referencia, umbral_similitud=0.7):
     """
@@ -23,30 +24,30 @@ def detectar_mapa(video_path, mapas_referencia, umbral_similitud=0.7):
     mejor_similitud = 0
     mapa_detectado = None
 
-    for mapa, imagen_referencia in mapas_referencia.items():
-        # Calcular descriptores de la imagen de referencia
-        kp_ref, des_ref = orb.detectAndCompute(imagen_referencia, None)
+    for mapa, imagenes_referencia in mapas_referencia.items():  # Iterar sobre las listas de imágenes
+        for imagen_referencia in imagenes_referencia:
+            kp_ref, des_ref = orb.detectAndCompute(imagen_referencia, None)
 
-        for frame in frames_clave:
-            # Calcular descriptores del frame
-            kp_frame, des_frame = orb.detectAndCompute(frame, None)
+            for frame in frames_clave:
+                # Calcular descriptores del frame
+                kp_frame, des_frame = orb.detectAndCompute(frame, None)
 
-            # Comparar descriptores usando un matcher
-            bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-            matches = bf.match(des_ref, des_frame)
+                # Comparar descriptores usando un matcher
+                bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+                matches = bf.match(des_ref, des_frame)
 
-            # Ordenar los matches por distancia
-            matches = sorted(matches, key=lambda x: x.distance)
+                # Ordenar los matches por distancia
+                matches = sorted(matches, key=lambda x: x.distance)
 
-            # Calcular la similitud estructural
-            similitud = structural_similarity(imagen_referencia, frame, multichannel=True)
+                # Calcular la similitud estructural
+                similitud = structural_similarity(imagen_referencia, frame, multichannel=True)
 
-            # Combinar la similitud de descriptores y la similitud estructural
-            puntuacion = len(matches) * similitud
+                # Combinar la similitud de descriptores y la similitud estructural
+                puntuacion = len(matches) * similitud
 
-            if puntuacion > mejor_similitud:
-                mejor_similitud = puntuacion
-                mapa_detectado = mapa
+                if puntuacion > mejor_similitud:
+                    mejor_similitud = puntuacion
+                    mapa_detectado = mapa
 
     # Verificar si la similitud supera el umbral
     if mejor_similitud >= umbral_similitud:
