@@ -7,7 +7,7 @@ import numpy as np
 from unet_model import UNet
 from tqdm import tqdm
 
-def process_video(input_video_path, output_video_path="output.mp4"):  # Agregar output path como parámetro
+def process_video(input_video_path, output_video_path,map_detected):  # Agregar output path como parámetro
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     output_video_path = os.path.join(script_dir, "video_procesado.mp4")
@@ -32,7 +32,11 @@ def process_video(input_video_path, output_video_path="output.mp4"):  # Agregar 
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = UNet()
-    model.load_state_dict(torch.load('models/unet_model_inferno_v2.pth', map_location=device)) # Cargar modelo en grafica o CPU, falta ver si se usara solo un modelo global o uno para cada mapa, haría falta para eso una forma de detectar el mapa previamente, de momento, intentare un solo modelo
+    if map_detected:
+        modelo_path = f"models/unet_model_{map_detected}.pth"
+        model.load_state_dict(torch.load(modelo_path, map_location=device)) # Cargar modelo en grafica o CPU, falta ver si se usara solo un modelo global o uno para cada mapa, haría falta para eso una forma de detectar el mapa previamente, de momento, intentare un solo modelo
+    else:
+        model.load_state_dict(torch.load('models/unet_model_inferno_v2.pth', map_location=device)) # Cargar modelo en grafica o CPU, falta ver si se usara solo un modelo global o uno para cada mapa, haría falta para eso una forma de detectar el mapa previamente, de momento, intentare un solo modelo
     model.to(device)
     model.eval()
 
