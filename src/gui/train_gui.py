@@ -43,7 +43,7 @@ def check_if_both_videos_selected():
         
 def extract_frames_from_video():
 
-
+    
     output_dir = "data/train"
     train_low_dir = os.path.join(output_dir, "train_low")
     train_high_dir = os.path.join(output_dir, "train_high")
@@ -58,6 +58,7 @@ def extract_frames_from_video():
     high_success, high_image = high_vidcap.read()
     
     count = 0
+    frame_counter = 0 
     while low_success and high_success:  #  Iterar mientras ambos videos tengan frames
         high_quality_image = high_image.copy()
         #high_quality_image = cv2.resize(high_image, (256, 256))  # Si es necesario redimensionar
@@ -65,16 +66,18 @@ def extract_frames_from_video():
         low_quality_image = low_image.copy()
         #low_quality_image = cv2.resize(low_image, (256, 256)) # Si es necesario redimensionar
 
-        filename = f"frame_{count:04d}.jpg" #  Mismo nombre de archivo para ambos
-        high_quality_path = os.path.join(train_high_dir, filename)
-        low_quality_path = os.path.join(train_low_dir, filename)
+        if frame_counter % 3 == 0:  # Guarda solo cada 3 frames
+            filename = f"frame_{count:04d}.jpg" #  Mismo nombre de archivo para ambos
+            high_quality_path = os.path.join(train_high_dir, filename)
+            low_quality_path = os.path.join(train_low_dir, filename)
 
-        cv2.imwrite(high_quality_path, high_quality_image)
-        cv2.imwrite(low_quality_path, low_quality_image)
-
+            cv2.imwrite(high_quality_path, high_quality_image)
+            cv2.imwrite(low_quality_path, low_quality_image)
+            count += 1  # Incrementa el contador de archivos guardados
+        
+        frame_counter += 1  # Incrementa el contador de frames
         low_success, low_image = low_vidcap.read()
         high_success, high_image = high_vidcap.read()
-        count += 1
 
     low_vidcap.release()
     high_vidcap.release()

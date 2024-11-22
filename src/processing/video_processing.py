@@ -38,7 +38,7 @@ def process_video(input_video_path, output_video_path="output.mp4"):  # Agregar 
 
     transform = transforms.Compose([
         transforms.ToPILImage(),
-        transforms.Resize((400, 400)),  # Redimensionar para el modelo
+        transforms.Resize((640, 480)),  # Redimensionar para el modelo
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
