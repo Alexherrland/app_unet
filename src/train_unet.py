@@ -18,15 +18,30 @@ def train(
     unet_up_mode='upconv',
     loss_function=nn.MSELoss(),
     optimizer_class=optim.Adam,
-    learning_rate=0.001
+    learning_rate=0.001,
+    save_every_n_batches=2400,
+    previous_model=False,  
+    previous_model_path='unet_model.pth'  # Ruta al modelo anterior
 ):
     
-    model = UNet(depth=unet_depth, wf=unet_wf, padding=unet_padding,
-                 batch_norm=unet_batch_norm, up_mode=unet_up_mode)
+    if previous_model:
+        # Cargar el estado del modelo anterior
+        try:
+            checkpoint = torch.load(previous_model_path)
+            model = UNet(depth=unet_depth, wf=unet_wf, padding=unet_padding,
+                         batch_norm=unet_batch_norm, up_mode=unet_up_mode)
+            model.load_state_dict(checkpoint)
+            print(f"Cargando modelo anterior desde: {previous_model_path}")
+        except FileNotFoundError:
+            print(f"Error: No se encontró el modelo anterior en {previous_model_path}")
+            return
+    else:
+        # Crear un nuevo modelo
+        model = UNet(depth=unet_depth, wf=unet_wf, padding=unet_padding,
+                     batch_norm=unet_batch_norm, up_mode=unet_up_mode)
+
     criterion = loss_function
     optimizer = optimizer_class(model.parameters(), lr=learning_rate)
-    #criterion = nn.MSELoss() # criterion = loss_function   # Cambia la función de pérdida a MSE para denoising
-    #optimizer = optim.Adam(model.parameters(), lr=0.0001) # optimizer = optimizer_class(model.parameters(), lr=learning_rate)
     if torch.cuda.is_available():
         device = torch.device("cuda")
         model.to(device)
@@ -40,6 +55,7 @@ def train(
         epoch_loss = 0
         epoch_psnr = 0
         epoch_ssim = 0
+        batch_counter = 0
         for inputs, labels in dataloader:
             inputs = inputs.to(device)
             labels = labels.to(device)
@@ -56,9 +72,14 @@ def train(
                 output_image = outputs_np[i].transpose(1, 2, 0)  # Transpone las dimensiones para que coincidan con la entrada de las funciones de métricas
                 label_image = labels_np[i].transpose(1, 2, 0)
                 epoch_psnr += peak_signal_noise_ratio(label_image, output_image, data_range=1.0)  # data_range=1.0 para imágenes normalizadas
-                epoch_ssim += structural_similarity(label_image, output_image, multichannel=True, data_range=1.0)
+                epoch_ssim += structural_similarity(label_image, output_image, multichannel=True, data_range=1.0, win_size=3)
             epoch_loss += loss.item()
         
+        # Guardar el modelo cada 'save_every_n_batches' batches, por si se me va la luz
+            batch_counter += 1
+            if batch_counter % save_every_n_batches == 0:
+                torch.save(model.state_dict(), f'unet_model_epoch_{epoch+1}_batch_{batch_counter}.pth')
+                
         # Calcula el promedio de las métricas en la época
         epoch_loss /= len(dataloader)
         epoch_psnr /= len(dataloader.dataset)
@@ -74,9 +95,9 @@ if __name__ == "__main__":
     low_quality_path = os.path.join(files_dir, "train_low")
     high_quality_path = os.path.join(files_dir, "train_high")
 
-    #  Configura los parámetros del entrenamiento (experimenta con valores desde aqui, no tomar la funcion)
+    # Cambiar los parámetros del entrenamiento desde AQUI, no cambiar valores de la funcion
     epochs = 150
-    batch_size = 8
+    batch_size = 4
     learning_rate = 0.0001
     unet_depth = 5
     unet_wf = 6
@@ -97,5 +118,7 @@ if __name__ == "__main__":
         unet_batch_norm=unet_batch_norm,
         unet_up_mode=unet_up_mode,
         loss_function=loss_function,
-        learning_rate=learning_rate
+        learning_rate=learning_rate,
+        previous_model=False,  # Variable para indicar si se usa un modelo anterior en vez de iniciar un nuevo entrenamiento
+        #previous_model_path='unet_model_epoch_5_batch_100.pth'  # Ruta al modelo anterior
     )

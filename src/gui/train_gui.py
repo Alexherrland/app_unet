@@ -21,7 +21,7 @@ def select_video(resolution):
     else:
         return
 
-    file_path = filedialog.askopenfilename(title=title, filetypes=[("Archivos MP4", "*.mp4")])
+    file_path = filedialog.askopenfilename(title=title, filetypes=[("Archivos MP4", "*.mp4"), ("Archivos MKV", "*.mkv")])
     if file_path:
         label.config(text=f"Video {resolution} resolución: {file_path}")
         path_variable = file_path  # Actualizar la variable LOCAL
@@ -40,7 +40,23 @@ def check_if_both_videos_selected():
         extract_frames_button.config(state=tk.NORMAL)
     else:
         extract_frames_button.config(state=tk.NORMAL) #DISABLED , lo mismo que en el boton, mirar por que no se aplica la logica, de momento ignorar
-        
+
+def get_last_frame_number(directory):
+    """
+    Obtiene el número del último frame guardado en un directorio, no esta en uso de momento, deberia pasar esta funcion a utils.
+
+    Args:
+      directory: Ruta al directorio donde se guardan los frames.
+
+    Returns:
+      Número del último frame guardado o 0 si no hay frames en el directorio.
+    """
+    try:
+        last_frame = sorted(os.listdir(directory))[-1]
+        return int(last_frame.split('_')[1].split('.')[0])
+    except IndexError:
+        return 0
+
 def extract_frames_from_video():
 
     
@@ -57,7 +73,8 @@ def extract_frames_from_video():
     low_success, low_image = low_vidcap.read()
     high_success, high_image = high_vidcap.read()
     
-    count = 0
+    last_frame_number = get_last_frame_number(train_low_dir)  # la idea es que se puedan introducir diferentes videos y sigan los frames, de momento no esta implementado
+    count = 0  # Continuar la cuenta desde el último frame  # last_frame_number + 1
     frame_counter = 0 
     while low_success and high_success:  #  Iterar mientras ambos videos tengan frames
         high_quality_image = high_image.copy()
@@ -66,8 +83,8 @@ def extract_frames_from_video():
         low_quality_image = low_image.copy()
         #low_quality_image = cv2.resize(low_image, (256, 256)) # Si es necesario redimensionar
 
-        if frame_counter % 3 == 0:  # Guarda solo cada 3 frames
-            filename = f"frame_{count:04d}.jpg" #  Mismo nombre de archivo para ambos
+        if frame_counter % 15 == 0:  # Guarda solo cada x frames
+            filename = f"frame_{count:05d}.jpg" #  Mismo nombre de archivo para ambos
             high_quality_path = os.path.join(train_high_dir, filename)
             low_quality_path = os.path.join(train_low_dir, filename)
 
