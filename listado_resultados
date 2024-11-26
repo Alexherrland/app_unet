@@ -162,3 +162,43 @@ Cambios en la unet respecto a los anteriores modelos:
 -Voy a probar con el batch normalization en true, si veo que empeora, ponerlo en falso
 -de momento el alpha se dejara en 1, mas adelante probare con diferentes valores
 -Se ha añadido metodos de evaluacion
+
+
+-- LR a 0.0001
+Epoch [10/150], Loss: 0.3736, PSNR: 6.4130, SSIM: 0.3092
+Epoch [11/150], Loss: 0.3569, PSNR: 6.6615, SSIM: 0.3167
+Epoch [12/150], Loss: 0.3535, PSNR: 6.7486, SSIM: 0.3207
+Epoch [13/150], Loss: 0.3480, PSNR: 6.8306, SSIM: 0.3249
+Epoch [14/150], Loss: 0.3457, PSNR: 6.9152, SSIM: 0.3284
+Epoch [15/150], Loss: 0.3434, PSNR: 6.9277, SSIM: 0.3303
+Epoch [16/150], Loss: 0.3386, PSNR: 6.9978, SSIM: 0.3329
+Epoch [17/150], Loss: 0.3388, PSNR: 7.0195, SSIM: 0.3327
+Epoch [18/150], Loss: 0.3366, PSNR: 7.0431, SSIM: 0.3338
+Epoch [19/150], Loss: 0.3343, PSNR: 7.0474, SSIM: 0.3343
+Epoch [20/150], Loss: 0.3348, PSNR: 7.0364, SSIM: 0.3331
+Epoch [21/150], Loss: 0.3324, PSNR: 7.0864, SSIM: 0.3375
+Epoch [22/150], Loss: 0.3315, PSNR: 7.1074, SSIM: 0.3367
+Epoch [23/150], Loss: 0.3314, PSNR: 7.0947, SSIM: 0.3350
+Epoch [24/150], Loss: 0.3261, PSNR: 7.1391, SSIM: 0.3361
+Epoch [25/150], Loss: 0.3216, PSNR: 7.2218, SSIM: 0.3418
+-- Cambio de LR a 0.001
+Epoch [26/150], Loss: 0.3373, PSNR: 6.9463, SSIM: 0.3305
+Epoch [27/150], Loss: 0.3319, PSNR: 7.0539, SSIM: 0.3338
+Epoch [28/150], Loss: 0.3319, PSNR: 7.0353, SSIM: 0.3332
+Epoch [29/150], Loss: 0.3281, PSNR: 7.0759, SSIM: 0.3337
+Epoch [30/150], Loss: 0.3244, PSNR: 7.1566, SSIM: 0.3371
+Epoch [31/150], Loss: 0.3204, PSNR: 7.1783, SSIM: 0.3388
+Epoch [32/150], Loss: 0.3178, PSNR: 7.1525, SSIM: 0.3369
+Epoch [33/150], Loss: 0.3125, PSNR: 7.2309, SSIM: 0.3397
+Epoch [34/150], Loss: 0.3037, PSNR: 7.3031, SSIM: 0.3432
+Epoch [35/150], Loss: 0.2980, PSNR: 7.3115, SSIM: 0.3423
+Epoch [36/150], Loss: 0.2891, PSNR: 7.3484, SSIM: 0.3432
+Epoch [37/150], Loss: 0.2793, PSNR: 7.3945, SSIM: 0.3431
+Epoch [38/150], Loss: 0.2717, PSNR: 7.4454, SSIM: 0.3444
+Epoch [39/150], Loss: 0.2623, PSNR: 7.5438, SSIM: 0.3476
+Epoch [40/150], Loss: 0.2553, PSNR: 7.5651, SSIM: 0.3478
+Epoch [41/150], Loss: 0.2489, PSNR: 7.6473, SSIM: 0.3517
+Epoch [42/150], Loss: 0.2459, PSNR: 7.6553, SSIM: 0.3511
+Epoch [43/150], Loss: 0.2394, PSNR: 7.7158, SSIM: 0.3523
+Epoch [44/150], Loss: 0.2336, PSNR: 7.7969, SSIM: 0.3543
+Epoch [45/150], Loss: 0.2304, PSNR: 7.7992, SSIM: 0.3530

@@ -2,6 +2,8 @@
 data/train/train_high/
 data/train/train_low/
 models/
+unet_model_epoch_*.pth
+src/processing/video_procesado.mp4
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

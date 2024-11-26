@@ -36,7 +36,7 @@ def process_video(input_video_path, output_video_path,map_detected):  # Agregar 
         modelo_path = f"models/unet_model_{map_detected}.pth"
         model.load_state_dict(torch.load(modelo_path, map_location=device)) # Cargar modelo en grafica o CPU, falta ver si se usara solo un modelo global o uno para cada mapa, haría falta para eso una forma de detectar el mapa previamente, de momento, intentare un solo modelo
     else:
-        model.load_state_dict(torch.load('models/unet_model_inferno_v2.pth', map_location=device)) # Cargar modelo en grafica o CPU, falta ver si se usara solo un modelo global o uno para cada mapa, haría falta para eso una forma de detectar el mapa previamente, de momento, intentare un solo modelo
+        model.load_state_dict(torch.load('models/unet_model_epoch_45.pth', map_location=device)) # Cargar modelo en grafica o CPU, falta ver si se usara solo un modelo global o uno para cada mapa, haría falta para eso una forma de detectar el mapa previamente, de momento, intentare un solo modelo
     model.to(device)
     model.eval()
 
