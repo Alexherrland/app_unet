@@ -32,7 +32,7 @@ def process_video_file():
     output_path = select_output_file()
     if output_path and input_video_path:  # Verifica si se seleccionaron ambos archivos
         try:
-            process_video(input_video_path, output_path) # Pasa la ruta de salida
+            process_video(input_video_path, output_path,map_detected=False) # Pasa la ruta de salida
             messagebox.showinfo("Procesamiento Completo", f"Video procesado guardado en: {output_path}")
         except Exception as e:
             messagebox.showerror("Error", f"Ocurrió un error: {e}") # Muestra la excepción completa

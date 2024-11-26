@@ -19,7 +19,6 @@ def train(
     loss_function=nn.MSELoss(),
     optimizer_class=optim.Adam,
     learning_rate=0.001,
-    save_every_n_batches=2400,
     previous_model=False,  
     previous_model_path='unet_model.pth'  # Ruta al modelo anterior
 ):
@@ -50,12 +49,11 @@ def train(
 
     dataloader = get_dataloader(low_quality_path, high_quality_path, batch_size=batch_size)  # Crea el dataloader
 
-
-    for epoch in range(epochs):
+    start_epoch = 44  # Empezar en la epoca que se guardo el estado del modelo
+    for epoch in range(start_epoch, epochs):
         epoch_loss = 0
         epoch_psnr = 0
         epoch_ssim = 0
-        batch_counter = 0
         for inputs, labels in dataloader:
             inputs = inputs.to(device)
             labels = labels.to(device)
@@ -65,29 +63,31 @@ def train(
             loss.backward()
             optimizer.step()
 
-            # Calcula las métricas PSNR y SSIM
-            outputs_np = outputs.detach().cpu().numpy()
-            labels_np = labels.detach().cpu().numpy()
-            for i in range(outputs_np.shape[0]):
-                output_image = outputs_np[i].transpose(1, 2, 0)  # Transpone las dimensiones para que coincidan con la entrada de las funciones de métricas
-                label_image = labels_np[i].transpose(1, 2, 0)
-                epoch_psnr += peak_signal_noise_ratio(label_image, output_image, data_range=1.0)  # data_range=1.0 para imágenes normalizadas
-                epoch_ssim += structural_similarity(label_image, output_image, multichannel=True, data_range=1.0, win_size=3)
-            epoch_loss += loss.item()
+            # Calcula las métricas PSNR y SSIM cada 15 epochs
+            if (epoch + 1) % 15 == 0:
+                # Calcula las métricas PSNR y SSIM
+                outputs_np = outputs.detach().cpu().numpy()
+                labels_np = labels.detach().cpu().numpy()
+                for i in range(outputs_np.shape[0]):
+                    output_image = outputs_np[i].transpose(1, 2, 0)  # Transpone las dimensiones para que coincidan con la entrada de las funciones de métricas
+                    label_image = labels_np[i].transpose(1, 2, 0)
+                    epoch_psnr += peak_signal_noise_ratio(label_image, output_image, data_range=1.0)  # data_range=1.0 para imágenes normalizadas
+                    epoch_ssim += structural_similarity(label_image, output_image, multichannel=True, data_range=1.0, win_size=3)
+                epoch_loss += loss.item()
+            else:
+                epoch_loss += loss.item()
         
-        # Guardar el modelo cada 'save_every_n_batches' batches, por si se me va la luz
-            batch_counter += 1
-            if batch_counter % save_every_n_batches == 0:
-                torch.save(model.state_dict(), f'unet_model_epoch_{epoch+1}_batch_{batch_counter}.pth')
-                
-        # Calcula el promedio de las métricas en la época
+        #Imprime las metricas
         epoch_loss /= len(dataloader)
         epoch_psnr /= len(dataloader.dataset)
         epoch_ssim /= len(dataloader.dataset)
-
         print(f'Epoch [{epoch+1}/{epochs}], Loss: {epoch_loss:.4f}, PSNR: {epoch_psnr:.4f}, SSIM: {epoch_ssim:.4f}')
 
-    torch.save(model.state_dict(), 'unet_model.pth')  # Guarda el modelo
+        # Guarda el modelo al final de cada epoch
+        torch.save(model.state_dict(), f'unet_model_epoch_{epoch+1}.pth')
+
+    #Guarda el modelo una vez se ha terminado el entrenamiento (es redundante ya que se guarda por cada epoch, pero tampoco pasa nada por tenerlo)
+    torch.save(model.state_dict(), 'unet_model.pth')
 
 if __name__ == "__main__":
     # Define las rutas a tus datos
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     # Cambiar los parámetros del entrenamiento desde AQUI, no cambiar valores de la funcion
     epochs = 150
     batch_size = 4
-    learning_rate = 0.0001
+    learning_rate = 0.001
     unet_depth = 5
     unet_wf = 6
     unet_padding = True  # Ajusta el valor de padding
@@ -119,6 +119,6 @@ if __name__ == "__main__":
         unet_up_mode=unet_up_mode,
         loss_function=loss_function,
         learning_rate=learning_rate,
-        previous_model=False,  # Variable para indicar si se usa un modelo anterior en vez de iniciar un nuevo entrenamiento
-        #previous_model_path='unet_model_epoch_5_batch_100.pth'  # Ruta al modelo anterior
+        previous_model=True,  # Variable para indicar si se usa un modelo anterior en vez de iniciar un nuevo entrenamiento
+        previous_model_path='unet_model_epoch_45.pth'  # Ruta al modelo anterior
     )
