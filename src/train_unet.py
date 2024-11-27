@@ -49,7 +49,7 @@ def train(
 
     dataloader = get_dataloader(low_quality_path, high_quality_path, batch_size=batch_size)  # Crea el dataloader
 
-    start_epoch = 44  # Empezar en la epoca que se guardo el estado del modelo
+    start_epoch = 47  # Empezar en la epoca que se guardo el estado del modelo
     for epoch in range(start_epoch, epochs):
         epoch_loss = 0
         epoch_psnr = 0
@@ -62,20 +62,16 @@ def train(
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-
-            # Calcula las métricas PSNR y SSIM cada 15 epochs
-            if (epoch + 1) % 15 == 0:
-                # Calcula las métricas PSNR y SSIM
-                outputs_np = outputs.detach().cpu().numpy()
-                labels_np = labels.detach().cpu().numpy()
-                for i in range(outputs_np.shape[0]):
-                    output_image = outputs_np[i].transpose(1, 2, 0)  # Transpone las dimensiones para que coincidan con la entrada de las funciones de métricas
-                    label_image = labels_np[i].transpose(1, 2, 0)
-                    epoch_psnr += peak_signal_noise_ratio(label_image, output_image, data_range=1.0)  # data_range=1.0 para imágenes normalizadas
-                    epoch_ssim += structural_similarity(label_image, output_image, multichannel=True, data_range=1.0, win_size=3)
-                epoch_loss += loss.item()
-            else:
-                epoch_loss += loss.item()
+            
+            # Calcula las métricas PSNR y SSIM
+            outputs_np = outputs.detach().cpu().numpy()
+            labels_np = labels.detach().cpu().numpy()
+            for i in range(outputs_np.shape[0]):
+                output_image = outputs_np[i].transpose(1, 2, 0)  # Transpone las dimensiones para que coincidan con la entrada de las funciones de métricas
+                label_image = labels_np[i].transpose(1, 2, 0)
+                epoch_psnr += peak_signal_noise_ratio(label_image, output_image, data_range=1.0)  # data_range=1.0 para imágenes normalizadas
+                epoch_ssim += structural_similarity(label_image, output_image, multichannel=True, data_range=1.0, win_size=3)
+            epoch_loss += loss.item()
         
         #Imprime las metricas
         epoch_loss /= len(dataloader)
@@ -120,5 +116,5 @@ if __name__ == "__main__":
         loss_function=loss_function,
         learning_rate=learning_rate,
         previous_model=True,  # Variable para indicar si se usa un modelo anterior en vez de iniciar un nuevo entrenamiento
-        previous_model_path='unet_model_epoch_45.pth'  # Ruta al modelo anterior
+        previous_model_path='unet_model_epoch_47.pth'  # Ruta al modelo anterior
     )
