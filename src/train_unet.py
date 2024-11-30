@@ -94,7 +94,7 @@ if __name__ == "__main__":
     # Cambiar los parámetros del entrenamiento desde AQUI, no cambiar valores de la funcion
     epochs = 150
     batch_size = 4
-    learning_rate = 0.0001
+    learning_rate = 0.001
     unet_depth = 5
     unet_wf = 6
     unet_padding = True  # Ajusta el valor de padding
