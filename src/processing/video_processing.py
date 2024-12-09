@@ -36,15 +36,15 @@ def process_video(input_video_path, output_video_path,map_detected):  # Agregar 
         modelo_path = f"models/unet_model_{map_detected}.pth"
         model.load_state_dict(torch.load(modelo_path, map_location=device)) # Cargar modelo en grafica o CPU, falta ver si se usara solo un modelo global o uno para cada mapa, haría falta para eso una forma de detectar el mapa previamente, de momento, intentare un solo modelo
     else:
-        model.load_state_dict(torch.load('models/unet_model_epoch_98.pth', map_location=device)) # Cargar modelo en grafica o CPU, falta ver si se usara solo un modelo global o uno para cada mapa, haría falta para eso una forma de detectar el mapa previamente, de momento, intentare un solo modelo
+        model.load_state_dict(torch.load('models/unet_model_epoch_23.pth', map_location=device)) # Cargar modelo en grafica o CPU, falta ver si se usara solo un modelo global o uno para cada mapa, haría falta para eso una forma de detectar el mapa previamente, de momento, intentare un solo modelo
     model.to(device)
     model.eval()
 
     transform = transforms.Compose([
-        #transforms.ToPILImage(),
+        transforms.ToPILImage(),
         #transforms.Resize((640, 480)),  # Redimensionar para el modelo
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=[0.5062, 0.4583, 0.4214], std=[0.1695, 0.1677, 0.1675])
     ])
 
     pbar = tqdm(total=total_frames, desc="Procesando video")

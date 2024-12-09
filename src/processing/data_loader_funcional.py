@@ -25,12 +25,8 @@ class VideoDataset(Dataset):
 def get_dataloader(low_quality_path, high_quality_path, batch_size=4):
     # Transformaciones de augmentation
     transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomVerticalFlip(),
-        transforms.RandomRotation(10),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=[0.5062, 0.4583, 0.4214], std=[0.1695, 0.1677, 0.1675])
     ])
 
     # Dataset con las transformaciones
@@ -39,4 +35,30 @@ def get_dataloader(low_quality_path, high_quality_path, batch_size=4):
     # Dataloader
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
+    #media, std = calcular_media_std(dataloader)
+    #print("Media:", media)
+    #print("Desviación estándar:", std)
     return dataloader
+
+
+def calcular_media_std(dataloader):
+    """
+    Calcula la media y la desviación estándar de un DataLoader.
+    """
+    mean = 0.
+    std = 0.
+    nb_samples = 0.
+    for data in dataloader:
+        low_res_images, high_res_images = data
+        batch_samples = low_res_images.size(0)
+        low_res_images = low_res_images.view(batch_samples, low_res_images.size(1), -1)
+        high_res_images = high_res_images.view(batch_samples, high_res_images.size(1), -1)
+        mean += low_res_images.mean(2).sum(0)
+        std += low_res_images.std(2).sum(0)
+        mean += high_res_images.mean(2).sum(0)
+        std += high_res_images.std(2).sum(0)
+        nb_samples += batch_samples * 2
+
+    mean /= nb_samples
+    std /= nb_samples
+    return mean, std

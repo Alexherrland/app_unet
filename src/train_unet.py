@@ -49,7 +49,7 @@ def train(
 
     dataloader = get_dataloader(low_quality_path, high_quality_path, batch_size=batch_size)  # Crea el dataloader
 
-    start_epoch = 94  # Empezar en la epoca que se guardo el estado del modelo
+    start_epoch = 10  # Empezar en la epoca que se guardo el estado del modelo
     for epoch in range(start_epoch, epochs):
         epoch_loss = 0
         epoch_psnr = 0
@@ -94,13 +94,13 @@ if __name__ == "__main__":
     # Cambiar los parámetros del entrenamiento desde AQUI, no cambiar valores de la funcion
     epochs = 150
     batch_size = 4
-    learning_rate = 0.001
+    learning_rate = 0.0001
     unet_depth = 5
     unet_wf = 6
     unet_padding = True  # Ajusta el valor de padding
-    unet_batch_norm = True  # Ajusta el valor de batch normalization
+    unet_batch_norm = False  # Ajusta el valor de batch normalization
     unet_up_mode = 'upconv' #upconv y upsample
-    loss_function = nn.MSELoss() #Investigar cambios de funcion de perdida, actualmente MSELoss y L1Loss
+    loss_function = nn.L1Loss() #Investigar cambios de funcion de perdida, actualmente MSELoss y L1Loss
     optimizer_class = optim.Adam
 
     train(
@@ -115,6 +115,6 @@ if __name__ == "__main__":
         unet_up_mode=unet_up_mode,
         loss_function=loss_function,
         learning_rate=learning_rate,
-        previous_model=True,  # Variable para indicar si se usa un modelo anterior en vez de iniciar un nuevo entrenamiento
-        previous_model_path='unet_model_epoch_94.pth'  # Ruta al modelo anterior
+        previous_model=False,  # Variable para indicar si se usa un modelo anterior en vez de iniciar un nuevo entrenamiento
+        previous_model_path='unet_model_epoch_10.pth'  # Ruta al modelo anterior
     )
