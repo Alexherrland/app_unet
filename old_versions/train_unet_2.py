@@ -2,8 +2,7 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 import os
-from processing.L1SSIMLoss import L1SSIMLoss
-from processing.unet_model import UNet , ResidualUNet
+from processing.unet_model import UNet
 from processing.data_loader_funcional  import get_dataloader
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity  # Importa las métricas PSNR y SSIM
 
@@ -22,15 +21,14 @@ def train(
     learning_rate=0.001,
     previous_model=False,  
     previous_model_path='unet_model.pth',  # Ruta al modelo anterior
-    scale_factor=4,
-    use_residual= True
+    scale_factor=4
 ):
-    ModelClass = ResidualUNet if use_residual else UNet
+    
     if previous_model:
         # Cargar el estado del modelo anterior
         try:
             checkpoint = torch.load(previous_model_path)
-            model = ModelClass(depth=unet_depth, wf=unet_wf, padding=unet_padding,
+            model = UNet(depth=unet_depth, wf=unet_wf, padding=unet_padding,
                      batch_norm=unet_batch_norm, up_mode=unet_up_mode,
                      scale_factor=scale_factor)
             model.load_state_dict(checkpoint)
@@ -40,12 +38,10 @@ def train(
             return
     else:
         # Crear un nuevo modelo
-        model = ModelClass(depth=unet_depth, wf=unet_wf, padding=unet_padding,
-                     batch_norm=unet_batch_norm, up_mode=unet_up_mode,
-                     scale_factor=scale_factor)
+        model = UNet(depth=unet_depth, wf=unet_wf, padding=unet_padding,
+                     batch_norm=unet_batch_norm, up_mode=unet_up_mode)
 
-    #criterion = loss_function
-    criterion = L1SSIMLoss(l1_weight=1.0, ssim_weight=1.0)
+    criterion = loss_function
     optimizer = optimizer_class(model.parameters(), lr=learning_rate)
     if torch.cuda.is_available():
         device = torch.device("cuda")
@@ -123,7 +119,6 @@ if __name__ == "__main__":
         loss_function=loss_function,
         learning_rate=learning_rate,
         scale_factor=scale_factor,
-        use_residual=False,
         previous_model=False,  # Variable para indicar si se usa un modelo anterior en vez de iniciar un nuevo entrenamiento
-        previous_model_path='unet_model_epoch_.pth'  # Ruta al modelo anterior
+        previous_model_path='unet_model_epoch_10.pth'  # Ruta al modelo anterior
     )

@@ -1,36 +1,87 @@
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
 from PIL import Image
+import random
+import numpy as np
 import os
 
 class VideoDataset(Dataset):
-    def __init__(self, low_quality_path, high_quality_path, transform=None):
+    def __init__(self, low_quality_path, high_quality_path, crop_size=None):
         self.low_quality_images = [os.path.join(low_quality_path, img) for img in os.listdir(low_quality_path) if img.endswith(('.jpg', '.png'))]
         self.high_quality_images = [os.path.join(high_quality_path, img) for img in os.listdir(high_quality_path) if img.endswith(('.jpg', '.png'))]
-        self.transform = transform
+        
+        self.crop_size = crop_size
+         # Transformaciones para baja resolución
+        self.transform_low = transforms.Compose([
+            transforms.Resize((256, 256)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.3093, 0.2858, 0.2714], std=[0.2021, 0.1933, 0.1915])
+        ])
+
+        # Transformaciones para alta resolución
+        self.transform_high = transforms.Compose([
+            transforms.Resize((256, 256)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.3093, 0.2858, 0.2714], std=[0.2021, 0.1933, 0.1915])
+        ])
 
     def __len__(self):
         return len(self.low_quality_images)
+
+    def _paired_random_crop(self, lr_img, hr_img):
+        """Crop mantiene la relación de escala"""
+        if self.crop_size is None:
+            return lr_img, hr_img
+        
+        w, h = hr_img.size 
+        new_h, new_w = self.crop_size, self.crop_size
+        
+        top = random.randint(0, h - new_h)
+        left = random.randint(0, w - new_w)
+        
+        lr_img = lr_img.crop((left//4, top//4, left//4 + new_w//4, top//4 + new_h//4))
+        hr_img = hr_img.crop((left, top, left + new_w, top + new_h))
+
+        return lr_img, hr_img
+
+    def _paired_rotation(self, lr_img, hr_img):
+        """Rotaciones random a ambas imagenes"""
+        # Rotaciones
+        rotations = [
+            (None, None), 
+            (Image.ROTATE_90, Image.ROTATE_90),
+            (Image.ROTATE_180, Image.ROTATE_180),
+            (Image.ROTATE_270, Image.ROTATE_270),
+            (Image.FLIP_LEFT_RIGHT, Image.FLIP_LEFT_RIGHT)
+        ]
+        rot_lr, rot_hr = random.choice(rotations)
+        
+        if rot_lr:
+            lr_img = lr_img.transpose(rot_lr) 
+        if rot_hr:
+            hr_img = hr_img.transpose(rot_hr)
+        
+        return lr_img, hr_img
 
     def __getitem__(self, idx):
         low_quality_image = Image.open(self.low_quality_images[idx]).convert('RGB')
         high_quality_image = Image.open(self.high_quality_images[idx]).convert('RGB')
 
-        if self.transform:
-            low_quality_image = self.transform(low_quality_image)
-            high_quality_image = self.transform(high_quality_image)
+        # Rotaciones
+        low_quality_image, high_quality_image = self._paired_rotation(low_quality_image, high_quality_image)
+
+        # Crop
+        low_quality_image, high_quality_image = self._paired_random_crop(low_quality_image, high_quality_image) 
+
+        low_quality_image = self.transform_low(low_quality_image)
+        high_quality_image = self.transform_high(high_quality_image)
 
         return low_quality_image, high_quality_image
 
 def get_dataloader(low_quality_path, high_quality_path, batch_size=4):
-    # Transformaciones de augmentation
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.5062, 0.4583, 0.4214], std=[0.1695, 0.1677, 0.1675])
-    ])
 
     # Dataset con las transformaciones
-    dataset = VideoDataset(low_quality_path, high_quality_path, transform=transform)
+    dataset = VideoDataset(low_quality_path, high_quality_path)
 
     # Dataloader
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)

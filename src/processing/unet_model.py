@@ -1,12 +1,14 @@
+import math
+
 import torch
 from torch import nn
 import torch.nn.functional as F
 
 class UNet(nn.Module):
-    def __init__(self, in_channels=3, n_classes=3, depth=5, wf=6, padding=True,
-                 batch_norm=True, up_mode='upconv'):
+    def __init__(self, in_channels=3, n_classes=3, depth=4, wf=6, padding=False,
+                 batch_norm=True, up_mode='upconv', scale_factor=4):  # Añadir scale_factor
         """
-        Implementación de la nueva arquitectura U-Net.
+        Implementación de la U-Net con escalado de imagen.
 
         Args:
             in_channels (int): número de canales de entrada. Por defecto 3 para imágenes RGB.
@@ -18,6 +20,7 @@ class UNet(nn.Module):
             batch_norm (bool): si se aplica batch normalization o no después de cada convolución.
             up_mode (str): modo de upsampling. Puede ser 'upconv' para convolución transpuesta o 
                            'upsample' para upsampling bilineal seguido de una convolución 1x1.
+            scale_factor (int): factor de escalado para la superresolución. Debe ser una potencia de 2.
         """
         super(UNet, self).__init__()
         assert up_mode in ('upconv', 'upsample')
@@ -31,15 +34,21 @@ class UNet(nn.Module):
                                                 padding, batch_norm))
             prev_channels = 2**(wf+i)
 
+               # Decoder path
         self.up_path = nn.ModuleList()
-        for i in reversed(range(depth - 1)):
-            # Bloques convolucionales en la ruta ascendente (decoder)
-            self.up_path.append(UNetUpBlock(prev_channels, 2**(wf+i), up_mode,
-                                            padding, batch_norm))
+        for i in reversed(range(depth)):
+            self.up_path.append(
+                UNetUpBlock(prev_channels, 2**(wf+i), up_mode, 
+                            padding, batch_norm, scale_factor)
+            )
             prev_channels = 2**(wf+i)
 
-        # Capa convolucional final 1x1 para obtener la salida
+        # Final convolution
         self.last = nn.Conv2d(prev_channels, n_classes, kernel_size=1)
+        
+        # Upscaling layer
+        self.upscale = nn.Upsample(scale_factor=scale_factor, mode='bicubic', align_corners=False)
+
 
     def forward(self, x):
         blocks = []
@@ -51,11 +60,11 @@ class UNet(nn.Module):
                 x = F.max_pool2d(x, 2)
 
         for i, up in enumerate(self.up_path):
-            # Ruta ascendente (decoder)
-            x = up(x, blocks[-i-1])
+            if i > 0:
+                block = blocks[-i]
+                x = up(x, block)
 
         return self.last(x)
-
 class UNetConvBlock(nn.Module):
     def __init__(self, in_size, out_size, padding, batch_norm):
         """
@@ -72,25 +81,26 @@ class UNetConvBlock(nn.Module):
 
         # Dos capas convolucionales 3x3 con ReLU y opcionalmente Batch Normalization
         block.append(nn.Conv2d(in_size, out_size, kernel_size=3,
-                               padding=int(padding)))
-        block.append(nn.ReLU())
+                               padding=1 if padding else 0))
+        block.append(nn.ReLU(inplace=True))
         if batch_norm:
             block.append(nn.BatchNorm2d(out_size))
 
-        block.append(nn.Conv2d(out_size, out_size, kernel_size=3,
-                               padding=int(padding)))
-        block.append(nn.ReLU())
+        # Second convolution
+        block.append(nn.Conv2d(out_size, out_size, kernel_size=3, 
+                               padding=1 if padding else 0))
+        block.append(nn.ReLU(inplace=True))
+
         if batch_norm:
             block.append(nn.BatchNorm2d(out_size))
 
         self.block = nn.Sequential(*block)
 
     def forward(self, x):
-        out = self.block(x)
-        return out
+        return self.block(x)
 
 class UNetUpBlock(nn.Module):
-    def __init__(self, in_size, out_size, up_mode, padding, batch_norm):
+    def __init__(self, in_size, out_size, up_mode, padding, batch_norm, scale_factor=4):
         """
         Bloque de upsampling usado en la U-Net.
 
@@ -103,13 +113,12 @@ class UNetUpBlock(nn.Module):
         """
         super(UNetUpBlock, self).__init__()
         if up_mode == 'upconv':
-            # Upsampling con convolución transpuesta
-            self.up = nn.ConvTranspose2d(in_size, out_size, kernel_size=2,
-                                         stride=2)
+            # Upsampling con convolución transpuesta, ajustar stride según scale_factor
+            self.up = nn.ConvTranspose2d(in_size, out_size, kernel_size=4, stride=scale_factor // 2, padding=1)
         elif up_mode == 'upsample':
-            # Upsampling bilineal seguido de una convolución 1x1
+            # Upsampling bilineal seguido de una convolución 1x1, ajustar scale_factor en Upsample
             self.up = nn.Sequential(
-                nn.Upsample(mode='bilinear', scale_factor=2),
+                nn.Upsample(mode='bilinear', scale_factor=scale_factor // 2, align_corners=True),
                 nn.Conv2d(in_size, out_size, kernel_size=1),
             )
 
@@ -131,3 +140,23 @@ class UNetUpBlock(nn.Module):
         out = self.conv_block(out)
 
         return out
+    
+class ResidualUNet(UNet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Capa de upscaling residual
+        self.residual_upscale = nn.Upsample(
+            scale_factor=kwargs.get('scale_factor', 4), 
+            mode='bicubic', 
+            align_corners=False
+        )
+
+    def forward(self, x):
+        # Pasada forward original de U-Net
+        unet_output = super().forward(x)
+        
+        # Upscaling residual de la entrada
+        residual = self.residual_upscale(x)
+        
+        # Combinar salida de U-Net con entrada upscaleada
+        return unet_output + residual
