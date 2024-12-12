@@ -3,6 +3,7 @@ data/train/train_high/
 data/train/train_low/
 models/
 unet_model_epoch_*.pth
+best_unet_model.pth
 src/processing/video_procesado.mp4
 wandb/
 

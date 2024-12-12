@@ -29,28 +29,30 @@ def train(
     use_residual= True,
     enable_mixed_precision=True,
     enable_scheduler = True,
-    run_name=None 
+    run_name=None,
+    use_wandb=False
 ):
     # Inicializar wandb
-    wandb.init(
-        project="super-resolution-unet",
-        name=run_name or f"UNet-{'-'.join(str(x) for x in [unet_depth, unet_wf, scale_factor])}",
-        config={
-            "epochs": epochs,
-            "batch_size": batch_size,
-            "learning_rate": learning_rate,
-            "unet_depth": unet_depth,
-            "unet_wf": unet_wf,
-            "unet_padding": unet_padding,
-            "unet_batch_norm": unet_batch_norm,
-            "unet_up_mode": unet_up_mode,
-            "scale_factor": scale_factor,
-            "use_residual": use_residual,
-            "mixed_precision": enable_mixed_precision,
-            "loss_function": str(loss_function),
-            "optimizer": optimizer_class.__name__
-        }
-    )
+    if use_wandb:
+        wandb.init(
+            project="super-resolution-unet",
+            name=run_name or f"UNet-{'-'.join(str(x) for x in [unet_depth, unet_wf, scale_factor])}",
+            config={
+                "epochs": epochs,
+                "batch_size": batch_size,
+                "learning_rate": learning_rate,
+                "unet_depth": unet_depth,
+                "unet_wf": unet_wf,
+                "unet_padding": unet_padding,
+                "unet_batch_norm": unet_batch_norm,
+                "unet_up_mode": unet_up_mode,
+                "scale_factor": scale_factor,
+                "use_residual": use_residual,
+                "mixed_precision": enable_mixed_precision,
+                "loss_function": str(loss_function),
+                "optimizer": optimizer_class.__name__
+            }
+        )
     
     ModelClass = ResidualUNet if use_residual else UNet
     if previous_model:
@@ -141,31 +143,32 @@ def train(
         epoch_ssim /= len(dataloader.dataset)
 
         # Logging con wandb
-        wandb.log({
-            "epoch": epoch,
-            "loss": epoch_loss,
-            "psnr": epoch_psnr,
-            "ssim": epoch_ssim,
-            "learning_rate": optimizer.param_groups[0]['lr']
-        })
-        # Log de imágenes de ejemplo cada 10 épocas
-        if epoch % 10 == 0:
-            # Seleccionar algunas imágenes de entrada, salida y etiqueta
-            input_images = [wandb.Image(inputs[j].cpu(), caption=f"Input {j}") for j in range(min(3, inputs.shape[0]))]
-            output_images = [wandb.Image(outputs[j].detach().cpu(), caption=f"Output {j}") for j in range(min(3, outputs.shape[0]))]
-            label_images = [wandb.Image(labels[j].cpu(), caption=f"Label {j}") for j in range(min(3, labels.shape[0]))]
-            
+        if use_wandb:
             wandb.log({
-                "input_images": input_images,
-                "output_images": output_images,
-                "label_images": label_images
+                "epoch": epoch,
+                "loss": epoch_loss,
+                "psnr": epoch_psnr,
+                "ssim": epoch_ssim,
+                "learning_rate": optimizer.param_groups[0]['lr']
             })
+            # Log de imágenes de ejemplo cada 10 épocas
+            if epoch % 10 == 0:
+                # Seleccionar algunas imágenes de entrada, salida y etiqueta
+                input_images = [wandb.Image(inputs[j].cpu(), caption=f"Input {j}") for j in range(min(3, inputs.shape[0]))]
+                output_images = [wandb.Image(outputs[j].detach().cpu(), caption=f"Output {j}") for j in range(min(3, outputs.shape[0]))]
+                label_images = [wandb.Image(labels[j].cpu(), caption=f"Label {j}") for j in range(min(3, labels.shape[0]))]
+                
+                wandb.log({
+                    "input_images": input_images,
+                    "output_images": output_images,
+                    "label_images": label_images
+                })
         
         # Guardar el mejor modelo
         if epoch_psnr > best_psnr:
             best_psnr = epoch_psnr
             torch.save(model.state_dict(), 'best_unet_model.pth')
-            wandb.save('best_unet_model.pth')
+            #wandb.save('best_unet_model.pth')
         
         print(f'Epoch [{epoch+1}/{epochs}], Loss: {epoch_loss:.4f}, PSNR: {epoch_psnr:.4f}, SSIM: {epoch_ssim:.4f}')
 
@@ -182,7 +185,8 @@ def train(
     torch.save(model.state_dict(), 'unet_model.pth')
 
     # Finalizar sesión de wandb
-    wandb.finish()
+    if use_wandb:
+        wandb.finish()
 
 if __name__ == "__main__":
     # Define las rutas a tus datos
@@ -219,7 +223,8 @@ if __name__ == "__main__":
         use_residual=False,
         enable_mixed_precision = True,
         enable_scheduler = True,
+        use_wandb=False, #Activar wandb, de momendo dejarlo false para ver el rendimiento de mixed training
         run_name="Experimento-001",
-        previous_model=True,  # Variable para indicar si se usa un modelo anterior en vez de iniciar un nuevo entrenamiento
+        previous_model=False,  # Variable para indicar si se usa un modelo anterior en vez de iniciar un nuevo entrenamiento
         previous_model_path='unet_model_epoch_6.pth'  # Ruta al modelo anterior
     )
