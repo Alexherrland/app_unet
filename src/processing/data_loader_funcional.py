@@ -15,14 +15,14 @@ class VideoDataset(Dataset):
         self.transform_low = transforms.Compose([
             transforms.Resize((256, 256)),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.3093, 0.2858, 0.2714], std=[0.2021, 0.1933, 0.1915])
+            transforms.Normalize(mean=[0.3098, 0.2859, 0.2710], std=[0.2019, 0.1929, 0.1909])
         ])
 
         # Transformaciones para alta resolución
         self.transform_high = transforms.Compose([
             transforms.Resize((256, 256)),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.3093, 0.2858, 0.2714], std=[0.2021, 0.1933, 0.1915])
+            transforms.Normalize(mean=[0.3098, 0.2859, 0.2710], std=[0.2019, 0.1929, 0.1909])
         ])
 
     def __len__(self):
