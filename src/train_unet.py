@@ -51,15 +51,12 @@ def train(
             "optimizer": optimizer_class.__name__
         }
     )
-
-    if torch.cuda.is_available():
-        device = torch.device("cuda")
     
     ModelClass = ResidualUNet if use_residual else UNet
     if previous_model:
         # Cargar el estado del modelo anterior
         try:
-            checkpoint = torch.load(previous_model_path)
+            checkpoint = torch.load(previous_model_path,weights_only=False)
             model = ModelClass(depth=unet_depth, wf=unet_wf, padding=unet_padding,
                      batch_norm=unet_batch_norm, up_mode=unet_up_mode,
                      scale_factor=scale_factor)
@@ -74,7 +71,9 @@ def train(
                      batch_norm=unet_batch_norm, up_mode=unet_up_mode,
                      scale_factor=scale_factor)
     #Movemos el modelo a la GPU
-    model.to(device)
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        model.to(device)
 
     criterion = loss_function
     optimizer = optimizer_class(model.parameters(), lr=learning_rate)
@@ -85,13 +84,12 @@ def train(
         mode='min', #Reduce el LR cuando se activa
         factor=0.5, #Cuanto se reduce la tasa de aprendizaje cuando se activa
         patience=5, #Cuantos epochs deben pasar hasta que se active
-        verbose=True,
         min_lr=1e-6 #Minimo LR aceptado
     )
 
     # Precision Mixta
     if enable_mixed_precision and torch.cuda.is_available():
-        scaler = amp.GradScaler(device)
+        scaler = torch.amp.GradScaler(device)
     else:
         scaler = None
 
@@ -113,7 +111,7 @@ def train(
             optimizer.zero_grad()
             # Usar o no Mixed Precision
             if scaler is not None:
-                with amp.autocast(device_type='cuda', dtype=torch.float16):
+                with torch.amp.autocast("cuda",dtype=torch.float16):
                     outputs = model(inputs)
                     loss = criterion(outputs, labels)
 
@@ -174,6 +172,8 @@ def train(
         #Learning Rate Scheduler, de momento dejar desactivado hasta poder hacer pruebas
         if enable_scheduler:
             scheduler.step(epoch_loss)
+            current_lr = scheduler.get_last_lr()[0]  # Obtener la tasa de aprendizaje actual
+            print(f"Learning rate: {current_lr}") 
 
         # Guarda el modelo al final de cada epoch
         torch.save(model.state_dict(), f'unet_model_epoch_{epoch+1}.pth')
@@ -192,7 +192,7 @@ if __name__ == "__main__":
 
     # Cambiar los parámetros del entrenamiento
     epochs = 150
-    batch_size = 16
+    batch_size = 32
     learning_rate = 0.0005
     unet_depth = 4  # Ajustar la profundidad
     unet_wf = 6
@@ -202,7 +202,7 @@ if __name__ == "__main__":
     loss_function = L1SSIMLoss(l1_weight=0.1, ssim_weight=1.0) # Por default: nn.L1Loss()
     optimizer_class = optim.Adam
     scale_factor = 4
-
+    #wandb.login()
     train(
         low_quality_path,
         high_quality_path,
@@ -217,9 +217,9 @@ if __name__ == "__main__":
         learning_rate=learning_rate,
         scale_factor=scale_factor,
         use_residual=False,
-        enable_mixed_precision = False,
-        enable_scheduler = False,
+        enable_mixed_precision = True,
+        enable_scheduler = True,
         run_name="Experimento-001",
         previous_model=True,  # Variable para indicar si se usa un modelo anterior en vez de iniciar un nuevo entrenamiento
-        previous_model_path='unet_model_epoch_13.pth'  # Ruta al modelo anterior
+        previous_model_path='unet_model_epoch_6.pth'  # Ruta al modelo anterior
     )
