@@ -9,10 +9,10 @@ import numpy as np
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 torch.manual_seed(66)
 
-TRAIN_LOW_PATH = 'data/train/train_low_redimensionadas_2' 
-TRAIN_HIGH_PATH = 'data/train/train_high_redimensionadas_2'  
-VAL_LOW_PATH = 'data/val/train_low_redimensionadas_2' 
-VAL_HIGH_PATH = 'data/val/train_high_redimensionadas_2' 
+TRAIN_LOW_PATH = 'data/train/train_low_redimensionadas_model' 
+TRAIN_HIGH_PATH = 'data/train/train_high_redimensionadas_model'  
+VAL_LOW_PATH = 'data/val/train_low_redimensionadas_model' 
+VAL_HIGH_PATH = 'data/val/train_high_redimensionadas_model' 
 LOW_IMG_HEIGHT = 128
 LOW_IMG_WIDTH = 128
 
@@ -20,10 +20,10 @@ class ImageDataset(Dataset):
     def __init__(self, is_train=True):
         self.resize = transforms.Resize((LOW_IMG_WIDTH, LOW_IMG_HEIGHT), antialias=True)
         self.is_train = is_train
-        self.low_img_dir = 'data/train/train_low_redimensionadas_2'
-        self.high_img_dir = 'data/train/train_high_redimensionadas_2'
-        self.low_images = os.listdir('data/train/train_low_redimensionadas_2')
-        self.high_images = os.listdir('data/train/train_high_redimensionadas_2')
+        self.low_img_dir = 'data/train/train_low_redimensionadas_model'
+        self.high_img_dir = 'data/train/train_high_redimensionadas_model'
+        self.low_images = os.listdir('data/train/train_low_redimensionadas_model')
+        self.high_images = os.listdir('data/train/train_high_redimensionadas_model')
 
 
     def __len__(self):

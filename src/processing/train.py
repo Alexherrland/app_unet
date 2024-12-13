@@ -41,6 +41,7 @@ def train_epoch(model, optimizer, criterion, train_dataloader, device, scaler, e
         labels = labels.to(device)
 
         optimizer.zero_grad()
+        predictions = model(inputs)
         use_mixed = False
         if use_mixed:
             loss = criterion(predictions, labels)
@@ -57,9 +58,8 @@ def train_epoch(model, optimizer, criterion, train_dataloader, device, scaler, e
             scaler.step(optimizer)
             scaler.update()
         else:
-            loss = criterion(predictions, labels)
-            losses.append(loss.item())
-            predictions = model(inputs)
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
 

@@ -79,7 +79,7 @@ def train(
 if __name__ == "__main__":
 
     epochs = 150
-    batch_size = 12
+    batch_size = 2
     learning_rate = 0.0001
     
     loss_function = L1SSIMLoss(l1_weight=0.1, ssim_weight=1.0) 
@@ -89,7 +89,7 @@ if __name__ == "__main__":
         batch_size=batch_size,
         loss_function=loss_function,
         learning_rate=learning_rate,
-        enable_mixed_precision = True,
+        enable_mixed_precision = False,
         enable_scheduler = True,
         previous_model=False, 
         previous_model_path='robustunet_model_epoch_6.pth',  
