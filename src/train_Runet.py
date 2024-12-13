@@ -10,7 +10,6 @@ from processing.Runet_model import SR_Unet
 from processing.data_loader_RUnet import ImageDataset
 
 def train(
-    data_path,  # Ruta a la carpeta con las imágenes high y low
     epochs=150,
     batch_size=16,
     learning_rate=0.0001,
@@ -40,20 +39,15 @@ def train(
     criterion = loss_function
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate)
 
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, 
-        mode='min', 
-        factor=0.5, 
-        patience=5, 
-        min_lr=1e-6 
-    )
-
-    # Precision Mixta
-    if enable_mixed_precision and torch.cuda.is_available():
-        scaler = torch.amp.GradScaler(device)
-    else:
-        scaler = None
-
+    scheduler = None
+    if enable_scheduler:
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, 
+            mode='min',  # Reduce el LR cuando se activa
+            factor=0.5,  # Cuanto se reduce la tasa de aprendizaje cuando se activa
+            patience=5,  # Cuantos epochs deben pasar hasta que se active
+            min_lr=1e-6  # Minimo LR aceptado
+        )
      # Crear el dataset
     dataset = ImageDataset(is_train=True)
 
@@ -77,21 +71,20 @@ def train(
         train_dataloader=train_dataloader, 
         valid_dataloader=test_dataloader, 
         num_epochs=epochs, 
-        device=device
+        device=device,
+        scheduler=scheduler
     )
 
 
 if __name__ == "__main__":
-    data_path = "data/train"
 
     epochs = 150
-    batch_size = 16
+    batch_size = 12
     learning_rate = 0.0001
     
     loss_function = L1SSIMLoss(l1_weight=0.1, ssim_weight=1.0) 
     
     train(
-        data_path,
         epochs=150,
         batch_size=batch_size,
         loss_function=loss_function,

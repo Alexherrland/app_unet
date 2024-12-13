@@ -13,8 +13,8 @@ TRAIN_LOW_PATH = 'data/train/train_low_redimensionadas_2'
 TRAIN_HIGH_PATH = 'data/train/train_high_redimensionadas_2'  
 VAL_LOW_PATH = 'data/val/train_low_redimensionadas_2' 
 VAL_HIGH_PATH = 'data/val/train_high_redimensionadas_2' 
-LOW_IMG_HEIGHT = 64
-LOW_IMG_WIDTH = 64
+LOW_IMG_HEIGHT = 128
+LOW_IMG_WIDTH = 128
 
 class ImageDataset(Dataset):
     def __init__(self, is_train=True):

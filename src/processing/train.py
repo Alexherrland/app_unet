@@ -1,10 +1,11 @@
 import time
+import os
 import torch
 import matplotlib.pyplot as plt
 from torcheval.metrics.functional import peak_signal_noise_ratio
 
 
-def generate_images(model, inputs, labels):
+def generate_images(model, inputs, labels, epoch):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     torch.manual_seed(66)
     model.eval()
@@ -12,6 +13,9 @@ def generate_images(model, inputs, labels):
         inputs, labels = inputs.to(device), labels.to(device)
         predictions = model(inputs)
     inputs, labels, predictions = inputs.cpu().numpy(), labels.cpu().numpy(), predictions.cpu().numpy()
+    
+    os.makedirs('training_comparisons', exist_ok=True)
+    
     plt.figure(figsize=(15,20))
 
     display_list = [inputs[-1].transpose((1, 2, 0)), labels[-1].transpose((1, 2, 0)), predictions[-1].transpose((1, 2, 0))]
@@ -22,7 +26,9 @@ def generate_images(model, inputs, labels):
         plt.title(title[i])
         plt.imshow((display_list[i] + 1) / 2)
         plt.axis('off')
-    plt.show()
+    
+    plt.savefig(f'training_comparisons/epoch_{epoch}_comparison.png')
+    plt.close()
 
 def train_epoch(model, optimizer, criterion, train_dataloader, device, scaler, epoch=0, log_interval=50):  # Agregar scaler
     model.train()
@@ -35,17 +41,27 @@ def train_epoch(model, optimizer, criterion, train_dataloader, device, scaler, e
         labels = labels.to(device)
 
         optimizer.zero_grad()
-
-        # Habilitar la precisión mixta
-        with torch.amp.autocast("cuda",dtype=torch.float16): 
-            predictions = model(inputs)
+        use_mixed = False
+        if use_mixed:
             loss = criterion(predictions, labels)
-        losses.append(loss.item())
+            losses.append(loss.item())
 
-        # Escalar la pérdida y realizar la retropropagación
-        scaler.scale(loss).backward()  
-        scaler.step(optimizer)
-        scaler.update()
+            # Habilitar la precisión mixta
+            with torch.amp.autocast("cuda",dtype=torch.float16): 
+                predictions = model(inputs)
+                loss = criterion(predictions, labels)
+            losses.append(loss.item())
+
+            # Escalar la pérdida y realizar la retropropagación
+            scaler.scale(loss).backward()  
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss = criterion(predictions, labels)
+            losses.append(loss.item())
+            predictions = model(inputs)
+            loss.backward()
+            optimizer.step()
 
         total_psnr += peak_signal_noise_ratio(predictions, labels)
         total_count += 1
@@ -87,7 +103,7 @@ def evaluate_epoch(model, criterion, valid_dataloader, device):
     epoch_loss = sum(losses) / len(losses)
     return epoch_psnr, epoch_loss
 
-def train_model(model, model_name, save_model, optimizer, criterion, train_dataloader, valid_dataloader, num_epochs, device):
+def train_model(model, model_name, save_model, optimizer, criterion, train_dataloader, valid_dataloader, num_epochs, device, scheduler=None):
     train_psnrs, train_losses = [], []
     eval_psnrs, eval_losses = [], []
     best_psnr_eval = -1000
@@ -104,6 +120,10 @@ def train_model(model, model_name, save_model, optimizer, criterion, train_datal
         eval_psnr, eval_loss = evaluate_epoch(model, criterion, valid_dataloader, device)
         eval_psnrs.append(eval_psnr.cpu())
         eval_losses.append(eval_loss)
+
+        # Learning Rate Scheduler
+        if scheduler is not None:
+            scheduler.step(eval_loss)
 
         # Save best model
         if best_psnr_eval < eval_psnr :

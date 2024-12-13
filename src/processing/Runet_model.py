@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 from torchvision import transforms
 
-LOW_IMG_HEIGHT = 64
-LOW_IMG_WIDTH = 64
+LOW_IMG_HEIGHT = 128
+LOW_IMG_WIDTH = 128
 
 class FirstFeatureNoSkip(nn.Module):
     '''
