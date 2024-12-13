@@ -114,7 +114,7 @@ class UNetUpBlock(nn.Module):
         super(UNetUpBlock, self).__init__()
         if up_mode == 'upconv':
             # Upsampling con convolución transpuesta, ajustar stride según scale_factor
-            self.up = nn.ConvTranspose2d(in_size, out_size, kernel_size=4, stride=scale_factor // 2, padding=1)
+            self.up = nn.ConvTranspose2d(in_size, out_size, kernel_size=4, stride=2, padding=1)
         elif up_mode == 'upsample':
             # Upsampling bilineal seguido de una convolución 1x1, ajustar scale_factor en Upsample
             self.up = nn.Sequential(

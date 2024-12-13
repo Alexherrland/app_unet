@@ -30,7 +30,8 @@ def train(
     enable_mixed_precision=True,
     enable_scheduler = True,
     run_name=None,
-    use_wandb=False
+    use_wandb=False,
+    unet_model_class=UNet
 ):
     # Inicializar wandb
     if use_wandb:
@@ -54,12 +55,11 @@ def train(
             }
         )
     
-    ModelClass = ResidualUNet if use_residual else UNet
     if previous_model:
         # Cargar el estado del modelo anterior
         try:
             checkpoint = torch.load(previous_model_path,weights_only=False)
-            model = ModelClass(depth=unet_depth, wf=unet_wf, padding=unet_padding,
+            model = unet_model_class(depth=unet_depth, wf=unet_wf, padding=unet_padding,
                      batch_norm=unet_batch_norm, up_mode=unet_up_mode,
                      scale_factor=scale_factor)
             model.load_state_dict(checkpoint)
@@ -69,9 +69,10 @@ def train(
             return
     else:
         # Crear un nuevo modelo
-        model = ModelClass(depth=unet_depth, wf=unet_wf, padding=unet_padding,
+        model = unet_model_class(depth=unet_depth, wf=unet_wf, padding=unet_padding,
                      batch_norm=unet_batch_norm, up_mode=unet_up_mode,
                      scale_factor=scale_factor)
+        
     #Movemos el modelo a la GPU
     if torch.cuda.is_available():
         device = torch.device("cuda")
@@ -117,7 +118,7 @@ def train(
                     outputs = model(inputs)
                     loss = criterion(outputs, labels)
 
-                scaler.scale(loss).backward()
+                scaler.scale(loss).backward() 
                 scaler.step(optimizer)
                 scaler.update()
             else:
@@ -196,8 +197,8 @@ if __name__ == "__main__":
 
     # Cambiar los parámetros del entrenamiento
     epochs = 150
-    batch_size = 32
-    learning_rate = 0.0005
+    batch_size = 16
+    learning_rate = 0.0001
     unet_depth = 4  # Ajustar la profundidad
     unet_wf = 6
     unet_padding = True
@@ -205,7 +206,8 @@ if __name__ == "__main__":
     unet_up_mode = 'upconv'
     loss_function = L1SSIMLoss(l1_weight=0.1, ssim_weight=1.0) # Por default: nn.L1Loss()
     optimizer_class = optim.Adam
-    scale_factor = 4
+    scale_factor = 4,
+    unet_model_class=UNet,
     #wandb.login()
     train(
         low_quality_path,
@@ -221,10 +223,11 @@ if __name__ == "__main__":
         learning_rate=learning_rate,
         scale_factor=scale_factor,
         use_residual=False,
-        enable_mixed_precision = True,
+        enable_mixed_precision = False,
         enable_scheduler = True,
         use_wandb=False, #Activar wandb, de momendo dejarlo false para ver el rendimiento de mixed training
         run_name="Experimento-001",
         previous_model=False,  # Variable para indicar si se usa un modelo anterior en vez de iniciar un nuevo entrenamiento
-        previous_model_path='unet_model_epoch_6.pth'  # Ruta al modelo anterior
+        previous_model_path='unet_model_epoch_38.pth',  # Ruta al modelo anterior
+        unet_model_class=UNet #RobustUNet
     )

@@ -1,11 +1,13 @@
 #Ignorar archivos de entrenamiento
-data/train/train_high/
-data/train/train_low/
+data/train/
+data/train/
 models/
 unet_model_epoch_*.pth
 best_unet_model.pth
+*.pt
 src/processing/video_procesado.mp4
 wandb/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
