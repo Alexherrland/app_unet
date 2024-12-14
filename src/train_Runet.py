@@ -6,7 +6,7 @@ import torch.cuda.amp as amp
 from torch.utils.data import DataLoader, random_split
 from processing.train import train_epoch, evaluate_epoch, train_model
 from processing.L1SSIMLoss import L1SSIMLoss 
-from processing.Runet_model import SR_Unet 
+from processing.Runet_model import SR_Unet , SR_Unet_Residual
 from processing.data_loader_RUnet import ImageDataset
 
 def train(
@@ -79,10 +79,10 @@ def train(
 if __name__ == "__main__":
 
     epochs = 150
-    batch_size = 2
+    batch_size = 3
     learning_rate = 0.0001
     
-    loss_function = L1SSIMLoss(l1_weight=0.1, ssim_weight=1.0) 
+    loss_function = L1SSIMLoss(l1_weight=0.1, ssim_weight=1) 
     
     train(
         epochs=150,
@@ -91,6 +91,6 @@ if __name__ == "__main__":
         learning_rate=learning_rate,
         enable_mixed_precision = False,
         enable_scheduler = True,
-        previous_model=False, 
-        previous_model_path='robustunet_model_epoch_6.pth',  
+        previous_model=True, 
+        previous_model_path='robustunet_model.pt',  
     )

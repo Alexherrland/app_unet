@@ -194,8 +194,11 @@ class SR_Unet(nn.Module):
 
         self.n_channels = n_channels
         self.n_classes = n_classes
-        self.resize_fnc = transforms.Resize((LOW_IMG_HEIGHT*4, LOW_IMG_HEIGHT*4),
-                                             antialias=True)
+        self.resize_fnc = transforms.Resize(
+            (LOW_IMG_HEIGHT*4, LOW_IMG_WIDTH*4), 
+            interpolation=transforms.InterpolationMode.BICUBIC,
+            antialias=True
+        )
         self.in_conv1 = FirstFeature(n_channels, 64)
         self.in_conv2 = ConvBlock(64, 64)
 
@@ -203,7 +206,9 @@ class SR_Unet(nn.Module):
         self.enc_2 = Encoder(128, 256)
         self.enc_3 = Encoder(256, 512)
         self.enc_4 = Encoder(512, 1024)
+        self.enc_5 = Encoder(1024, 2048)
 
+        self.dec_0 = Decoder(2048, 1024) 
         self.dec_1 = Decoder(1024, 512)
         self.dec_2 = Decoder(512, 256)
         self.dec_3 = Decoder(256, 128)
@@ -220,8 +225,96 @@ class SR_Unet(nn.Module):
         x3 = self.enc_2(x2)
         x4 = self.enc_3(x3)
         x5 = self.enc_4(x4)
+        x6 = self.enc_5(x5)
 
+        x = self.dec_0(x6, x5)
         x = self.dec_1(x5, x4)
+        x = self.dec_2(x, x3)
+        x = self.dec_3(x, x2)
+        x = self.dec_4(x, x1)
+
+        x = self.out_conv(x)
+        return x
+    
+class ResidualBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, downsample=False):
+        super(ResidualBlock, self).__init__()
+        stride = 2 if downsample else 1
+        
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, 3, stride=stride, padding=1, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.LeakyReLU(inplace=True)
+        )
+        
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(out_channels, out_channels, 3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(out_channels)
+        )
+        
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_channels != out_channels:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, 1, stride=stride, bias=False),
+                nn.BatchNorm2d(out_channels)
+            )
+        
+        self.leaky_relu = nn.LeakyReLU(inplace=True)
+    
+    def forward(self, x):
+        residual = x
+        
+        out = self.conv1(x)
+        out = self.conv2(out)
+        
+        out += self.shortcut(residual)
+        out = self.leaky_relu(out)
+        
+        return out
+
+class SR_Unet_Residual(nn.Module):
+    def __init__(
+            self, n_channels=3, n_classes=3
+    ):
+        super(SR_Unet_Residual, self).__init__()
+
+        self.n_channels = n_channels
+        self.n_classes = n_classes
+        self.resize_fnc = transforms.Resize(
+            (LOW_IMG_HEIGHT*4, LOW_IMG_WIDTH*4), 
+            interpolation=transforms.InterpolationMode.BICUBIC,
+            antialias=True
+        )
+        self.in_conv1 = FirstFeature(n_channels, 64)
+        self.in_conv2 = ResidualBlock(64, 64)
+
+        self.enc_1 = ResidualBlock(64, 128, downsample=True)
+        self.enc_2 = ResidualBlock(128, 256, downsample=True)
+        self.enc_3 = ResidualBlock(256, 512, downsample=True)
+        self.enc_4 = ResidualBlock(512, 1024, downsample=True)
+        self.enc_5 = ResidualBlock(1024, 2048, downsample=True)
+
+        self.dec_0 = Decoder(2048, 1024) 
+        self.dec_1 = Decoder(1024, 512)
+        self.dec_2 = Decoder(512, 256)
+        self.dec_3 = Decoder(256, 128)
+        self.dec_4 = Decoder(128, 64)
+
+        self.out_conv = FinalOutput(64, n_classes)
+
+    def forward(self, x):
+        x = self.resize_fnc(x)
+        x = self.in_conv1(x)
+        x1 = self.in_conv2(x)
+
+        x2 = self.enc_1(x1)
+        x3 = self.enc_2(x2)
+        x4 = self.enc_3(x3)
+        x5 = self.enc_4(x4)
+        x6 = self.enc_5(x5)
+
+        x = self.dec_0(x6, x5)
+        x = self.dec_1(x, x4)
         x = self.dec_2(x, x3)
         x = self.dec_3(x, x2)
         x = self.dec_4(x, x1)

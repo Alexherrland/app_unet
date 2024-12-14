@@ -1,5 +1,6 @@
 import time
 import os
+import json
 import torch
 import matplotlib.pyplot as plt
 from torcheval.metrics.functional import peak_signal_noise_ratio
@@ -42,26 +43,13 @@ def train_epoch(model, optimizer, criterion, train_dataloader, device, scaler, e
 
         optimizer.zero_grad()
         predictions = model(inputs)
-        use_mixed = False
-        if use_mixed:
-            loss = criterion(predictions, labels)
-            losses.append(loss.item())
+        # compute loss
+        loss = criterion(predictions, labels)
+        losses.append(loss.item())
 
-            # Habilitar la precisión mixta
-            with torch.amp.autocast("cuda",dtype=torch.float16): 
-                predictions = model(inputs)
-                loss = criterion(predictions, labels)
-            losses.append(loss.item())
-
-            # Escalar la pérdida y realizar la retropropagación
-            scaler.scale(loss).backward()  
-            scaler.step(optimizer)
-            scaler.update()
-        else:
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+        # backward
+        loss.backward()
+        optimizer.step()
 
         total_psnr += peak_signal_noise_ratio(predictions, labels)
         total_count += 1
@@ -129,7 +117,7 @@ def train_model(model, model_name, save_model, optimizer, criterion, train_datal
         if best_psnr_eval < eval_psnr :
             torch.save(model.state_dict(), save_model + f'/{model_name}.pt')
             inputs_t, targets_t = next(iter(valid_dataloader))
-            generate_images(model, inputs_t, targets_t)
+            generate_images(model, inputs_t, targets_t,epoch)
             best_psnr_eval = eval_psnr
         times.append(time.time() - epoch_start_time)
         # Print loss, psnr end epoch

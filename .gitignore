@@ -7,7 +7,7 @@ best_unet_model.pth
 *.pt
 src/processing/video_procesado.mp4
 wandb/
-
+training_comparisons/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
