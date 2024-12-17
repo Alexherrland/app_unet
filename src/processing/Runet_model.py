@@ -191,7 +191,13 @@ class SR_Unet(nn.Module):
             self, n_channels=3, n_classes=3
     ):
         super(SR_Unet, self).__init__()
-
+        """
+        Arquitectura SRU-Net básica para Super Resolución:
+        - Redimensiona imagen de entrada 
+        - Múltiples etapas de codificación y decodificación
+        - Skip connections entre etapas
+        - Salida con transformación Tanh
+        """
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.resize_fnc = transforms.Resize(
@@ -277,7 +283,11 @@ class SR_Unet_Residual(nn.Module):
             self, n_channels=3, n_classes=3
     ):
         super(SR_Unet_Residual, self).__init__()
-
+        """
+        Variante de SRU-Net con bloques residuales:
+        - Reemplaza bloques convolucionales por bloques residuales
+        - Mejora el flujo de gradientes
+        """
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.resize_fnc = transforms.Resize(
@@ -328,7 +338,12 @@ class SR_Unet_Residual_Deep(nn.Module):
             self, n_channels=3, n_classes=3
     ):
         super(SR_Unet_Residual_Deep, self).__init__()
-
+        """
+        Versión más profunda de SRU-Net residual:
+        - Bloques residuales más complejos
+        - Decodificadores con bloques residuales adicionales
+        - Mayor capacidad de representación
+        """
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.resize_fnc = transforms.Resize(

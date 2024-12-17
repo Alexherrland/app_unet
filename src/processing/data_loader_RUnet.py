@@ -8,15 +8,27 @@ import json
 
 class ImageDataset(Dataset):
     def __init__(self, is_train=True, normalization_stats_path='normalization_stats.json'):
-        # Paths
+        """
+        Dataset para cargar y preprocesar imágenes de super resolución:
+        
+        Funcionalidades:
+        - Carga de imágenes de baja y alta resolución
+        - Normalización con estadísticas precalculadas
+        - Data augmentation opcional
+        - Transformaciones y preprocesamiento
+        
+        Métodos principales:
+        - __len__: Retorna número de imágenes
+        - __getitem__: Carga y preprocesa imagen individual
+        - normalize: Normalización avanzada con estadísticas
+        - augment: Aumento de datos con transformaciones
+        """
         self.low_img_dir = 'data/train/train_low_redimensionadas_model'
         self.high_img_dir = 'data/train/train_high_redimensionadas_model'
         
-        # Load images
         self.low_images = os.listdir(self.low_img_dir)
         self.high_images = os.listdir(self.high_img_dir)
         
-        # Load normalization statistics
         with open(normalization_stats_path, 'r') as f:
             stats = json.load(f)
         
@@ -24,11 +36,10 @@ class ImageDataset(Dataset):
         self.low_std = stats['low_resolution']['std']
         self.high_mean = stats['high_resolution']['mean']
         self.high_std = stats['high_resolution']['std']
-        
-        # Training flag
+
         self.is_train = is_train
         
-        # Resize transformation
+        # Resize si es necesario
         #self.resize = transforms.Resize((128, 128), antialias=True)
 
     def __len__(self):
@@ -36,13 +47,11 @@ class ImageDataset(Dataset):
 
     def normalize(self, input_image, target_image):
         """
-        Advanced normalization using pre-calculated statistics
+        Normalización usando estadísticas precalculadas por canal
         """
-        # Convert to tensor
         input_image = transforms.functional.to_tensor(input_image)
         target_image = transforms.functional.to_tensor(target_image)
         
-        # Normalize using channel-wise mean and std
         input_image = transforms.functional.normalize(input_image, 
                                                      mean=self.low_mean, 
                                                      std=self.low_std)
@@ -54,7 +63,7 @@ class ImageDataset(Dataset):
     
     def normalize_basic(self, input_image, target_image):
         """
-        Normal normalization
+        Normalización básica al rango [-1, 1]
         """
 
         input_image = transforms.functional.to_tensor(input_image)
@@ -67,32 +76,22 @@ class ImageDataset(Dataset):
         
     def augment(self, input_image, target_image):
         """
-        Advanced data augmentation
+        Aumento de datos con:
+        - Volteo horizontal
+        - Rotación 
         """
-        # Random horizontal flip
         if torch.rand([]) < 0.5:
             input_image = transforms.functional.hflip(input_image)
             target_image = transforms.functional.hflip(target_image)
         
-        # Random rotation
         if torch.rand([]) < 0.3:
             angle = torch.randint(-30, 30, (1,)).item()
-            #input_image = transforms.functional.rotate(input_image, angle)
-            #target_image = transforms.functional.rotate(target_image, angle)
-        
-        # Color jittering
-        if torch.rand([]) < 0.3:
-            color_jitter = transforms.ColorJitter(
-                brightness=0.2, 
-                contrast=0.2, 
-                saturation=0.2
-            )
-            #input_image = color_jitter(input_image)
+            input_image = transforms.functional.rotate(input_image, angle)
+            target_image = transforms.functional.rotate(target_image, angle)
         
         return input_image, target_image
 
     def __getitem__(self, idx):
-        # Load images
         low_img_path = os.path.join(self.low_img_dir, self.low_images[idx])
         high_img_path = os.path.join(self.high_img_dir, self.high_images[idx])
 
@@ -100,10 +99,8 @@ class ImageDataset(Dataset):
         target_image = Image.open(high_img_path).convert("RGB")
 
 
-        # Normalize
         input_image, target_image = self.normalize_basic(input_image, target_image)
 
-        # Augment only during training
         #if self.is_train:
             #input_image, target_image = self.augment(input_image, target_image)
 

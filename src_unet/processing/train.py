@@ -6,6 +6,12 @@ from torcheval.metrics.functional import peak_signal_noise_ratio
 
 
 def generate_images(model, inputs, labels, epoch):
+    """
+    Genera comparativas visuales de imágenes durante el entrenamiento:
+    - Guarda imágenes de entrada, objetivo y predicción
+    - Crea una visualización lado a lado
+    - Guarda en carpeta 'training_comparisons'
+    """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     torch.manual_seed(66)
     model.eval()
@@ -30,7 +36,15 @@ def generate_images(model, inputs, labels, epoch):
     plt.savefig(f'training_comparisons/epoch_{epoch}_comparison.png')
     plt.close()
 
-def train_epoch(model, optimizer, criterion, train_dataloader, device, scaler, epoch=0, log_interval=50):  # Agregar scaler
+def train_epoch(model, optimizer, criterion, train_dataloader, device, scaler, epoch=0, log_interval=50):
+    """
+    Entrenamiento de un epoch completo:
+    - Realiza forward pass
+    - Calcula pérdida
+    - Actualiza pesos del modelo
+    - Calcula métricas como PSNR
+    - Imprime métricas cada cierto intervalo
+    """
     model.train()
     total_psnr, total_count = 0, 0
     losses = []
@@ -81,6 +95,12 @@ def train_epoch(model, optimizer, criterion, train_dataloader, device, scaler, e
     return epoch_psnr, epoch_loss
 
 def evaluate_epoch(model, criterion, valid_dataloader, device):
+    """
+    Evalúa el rendimiento del modelo en el conjunto de validación:
+    - Sin cálculo de gradientes
+    - Calcula pérdida y PSNR
+    - Retorna métricas del epoch
+    """
     model.eval()
     total_psnr, total_count = 0, 0
     losses = []
@@ -104,6 +124,15 @@ def evaluate_epoch(model, criterion, valid_dataloader, device):
     return epoch_psnr, epoch_loss
 
 def train_model(model, model_name, save_model, optimizer, criterion, train_dataloader, valid_dataloader, num_epochs, device, scheduler=None):
+    """
+    Función principal de entrenamiento:
+    - Itera por múltiples epochs
+    - Entrena y evalúa el modelo
+    - Guarda el mejor modelo basado en PSNR
+    - Genera imágenes comparativas
+    - Gestiona scheduler de learning rate
+    - Retorna modelo y métricas de entrenamiento
+    """
     train_psnrs, train_losses = [], []
     eval_psnrs, eval_losses = [], []
     best_psnr_eval = -1000
@@ -111,12 +140,12 @@ def train_model(model, model_name, save_model, optimizer, criterion, train_datal
     scaler = torch.amp.GradScaler(device)
     for epoch in range(1, num_epochs+1):
         epoch_start_time = time.time()
-        # Training
+        # Entrenamiento
         train_psnr, train_loss = train_epoch(model, optimizer, criterion, train_dataloader, device,scaler, epoch)
         train_psnrs.append(train_psnr.cpu())
         train_losses.append(train_loss)
 
-        # Evaluation
+        # Evaluación
         eval_psnr, eval_loss = evaluate_epoch(model, criterion, valid_dataloader, device)
         eval_psnrs.append(eval_psnr.cpu())
         eval_losses.append(eval_loss)
@@ -125,14 +154,14 @@ def train_model(model, model_name, save_model, optimizer, criterion, train_datal
         if scheduler is not None:
             scheduler.step(eval_loss)
 
-        # Save best model
+        # Guardar el mejor modelo
         if best_psnr_eval < eval_psnr :
             torch.save(model.state_dict(), save_model + f'/{model_name}.pt')
             inputs_t, targets_t = next(iter(valid_dataloader))
             generate_images(model, inputs_t, targets_t)
             best_psnr_eval = eval_psnr
         times.append(time.time() - epoch_start_time)
-        # Print loss, psnr end epoch
+        # Print loss, psnr y epoch
         print("-" * 59)
         print(
             "| End of epoch {:3d} | Time: {:5.2f}s | Train psnr {:8.3f} | Train Loss {:8.3f} "
@@ -142,7 +171,7 @@ def train_model(model, model_name, save_model, optimizer, criterion, train_datal
         )
         print("-" * 59)
 
-    # Load best model
+    # Cargar el mejor modelo
     model.load_state_dict(torch.load(save_model + f'/{model_name}.pt'))
     model.eval()
     metrics = {

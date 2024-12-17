@@ -1,9 +1,13 @@
+# Script principal de entrenamiento para el modelo RU-Net de Super Resolución
+
 import torch
 import torch.optim as optim
 import torch.nn as nn
 import os
 import torch.cuda.amp as amp
 from torch.utils.data import DataLoader, random_split
+
+# Importaciones de módulos propios para entrenamiento, pérdida personalizada y modelo
 from processing.train import train_epoch, evaluate_epoch, train_model
 from processing.L1SSIMLoss import L1SSIMLoss 
 from processing.Runet_model import SR_Unet , SR_Unet_Residual , SR_Unet_Residual_Deep
@@ -13,13 +17,23 @@ def train(
     epochs=150,
     batch_size=16,
     learning_rate=0.0001,
+    optimizer = optim.AdamW,
     loss_function=None,
     previous_model_path=None,
     enable_mixed_precision=False,
     previous_model=False,
     enable_scheduler = True
 ):
+    """
+    Función principal de entrenamiento con múltiples configuraciones:
     
+    - Carga de modelo previo opcional
+    - Configuración de dispositivo (GPU)
+    - Selección de función de pérdida
+    - Configuración de optimizador y scheduler
+    - División de dataset en entrenamiento y prueba
+    - Entrenamiento del modelo
+    """
     if previous_model :
         try:
             checkpoint = torch.load(previous_model_path,weights_only=False)
@@ -37,7 +51,7 @@ def train(
         model.to(device)
 
     criterion = loss_function
-    optimizer = optim.AdamW(model.parameters(), lr=learning_rate)
+    optimizer = optimizer(model.parameters(), lr=learning_rate)
 
     scheduler = None
     if enable_scheduler:
@@ -77,11 +91,12 @@ def train(
 
 
 if __name__ == "__main__":
-
+    # Configuración de hiperparámetros
     epochs = 150
     batch_size = 2
     learning_rate = 0.0001
-    
+    optimizer = optim.AdamW
+    # Creación de función de pérdida personalizada L1SSIM
     loss_function = L1SSIMLoss(l1_weight=0.1, ssim_weight=1) 
     
     train(
@@ -89,6 +104,7 @@ if __name__ == "__main__":
         batch_size=batch_size,
         loss_function=loss_function,
         learning_rate=learning_rate,
+        optimizer = optimizer,
         enable_mixed_precision = False,
         enable_scheduler = True,
         previous_model=False, 

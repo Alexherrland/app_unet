@@ -8,23 +8,38 @@ import math
 class L1SSIMLoss(nn.Module):
     def __init__(self, l1_weight=1.0, ssim_weight=1.0):
         super(L1SSIMLoss, self).__init__()
+        """
+        Función de pérdida que combina:
+        - L1 Loss: Diferencia absoluta entre predicción y ground truth
+        - SSIM Loss: Similitud estructural entre imágenes
+        
+        Características:
+        - Pesos configurables para cada componente
+        - Implementación completa de SSIM en PyTorch
+        """
         self.l1_weight = l1_weight
         self.ssim_weight = ssim_weight
 
     def forward(self, outputs, labels):
-        # Calcular L1 Loss
+        """
+        Calcula pérdida combinada:
+        1. L1 Loss: Diferencia absoluta
+        2. SSIM Loss: 1 - SSIM (para minimizar)
+        3. Combinación ponderada de ambas
+        """
         l1_loss = F.l1_loss(outputs, labels)
-        
-        # Calcular SSIM Loss (1 - SSIM, para que sea un loss que minimizar)
         ssim_loss = 1 - self._ssim(outputs, labels)
-        
-        # Combinar ambas pérdidas
         combined_loss = self.l1_weight * l1_loss + self.ssim_weight * ssim_loss
         
         return combined_loss
 
     def _ssim(self, img1, img2, window_size=11, size_average=True):
-        # Implementación de SSIM en PyTorch
+        """
+        Cálculo detallado de SSIM:
+        - Ventana gaussiana
+        - Comparación estadística de imágenes
+        - Múltiples correcciones para estabilidad
+        """
         channel = img1.size()[1]
         window = self._create_window(window_size, channel)
         
@@ -54,6 +69,9 @@ class L1SSIMLoss(nn.Module):
             return ssim_map.mean(1).mean(1).mean(1)
 
     def _create_window(self, window_size, channel):
+        """
+        Generación de ventana gaussiana para cálculo de SSIM
+        """
         def gaussian(window_size, sigma):
             gauss = torch.Tensor([math.exp(-(x - window_size//2)**2/float(2*sigma**2)) for x in range(window_size)])
             return gauss/gauss.sum()
