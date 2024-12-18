@@ -107,6 +107,6 @@ if __name__ == "__main__":
         optimizer = optimizer,
         enable_mixed_precision = False,
         enable_scheduler = True,
-        previous_model=False, 
+        previous_model=True, 
         previous_model_path='robustunet_model.pt',  
     )

@@ -1,1 +1,38 @@
-Epoch [6/150], Loss: 0.2596, PSNR: 11.5159, SSIM: 0.7222
+| End of epoch   1 | Time: 2093.86s | Train psnr   22.737 | Train Loss    0.364 | Valid psnr   23.918 | Valid Loss    0.358
+| End of epoch   2 | Time: 2216.25s | Train psnr   22.998 | Train Loss    0.355 | Valid psnr   23.959 | Valid Loss    0.361
+| End of epoch   3 | Time: 2247.47s | Train psnr   23.175 | Train Loss    0.349 | Valid psnr   24.098 | Valid Loss    0.350
+| End of epoch   4 | Time: 2032.06s | Train psnr   23.199 | Train Loss    0.344 | Valid psnr   24.167 | Valid Loss    0.344
+| End of epoch   5 | Time: 2050.43s | Train psnr   23.396 | Train Loss    0.339 | Valid psnr   24.278 | Valid Loss    0.337
+| End of epoch   6 | Time: 2040.27s | Train psnr   23.427 | Train Loss    0.335 | Valid psnr   24.322 | Valid Loss    0.335
+| End of epoch   7 | Time: 2061.15s | Train psnr   23.593 | Train Loss    0.331 | Valid psnr   24.431 | Valid Loss    0.331
+| End of epoch   1 | Time: 2527.48s | Train psnr   24.100 | Train Loss    0.330 | Valid psnr   24.491 | Valid Loss    0.324
+| End of epoch   1 | Time: 1627.86s | Train psnr   24.434 | Train Loss    0.310 | Valid psnr   24.924 | Valid Loss    0.319
+| End of epoch   2 | Time: 1549.58s | Train psnr   24.580 | Train Loss    0.306 | Valid psnr   25.272 | Valid Loss    0.311
+| End of epoch   3 | Time: 1848.06s | Train psnr   24.700 | Train Loss    0.302 | Valid psnr   25.371 | Valid Loss    0.307
+| End of epoch  19 | Time: 1828.97s | Train psnr   25.868 | Train Loss    0.263 | Valid psnr   26.133 | Valid Loss    0.280
+| End of epoch  20 | Time: 1833.86s | Train psnr   25.919 | Train Loss    0.261 | Valid psnr   26.188 | Valid Loss    0.278
+| End of epoch  21 | Time: 1833.22s | Train psnr   25.971 | Train Loss    0.260 | Valid psnr   26.168 | Valid Loss    0.278
+| End of epoch  22 | Time: 1880.19s | Train psnr   26.040 | Train Loss    0.267 | Valid psnr   26.086 | Valid Loss    0.276
+| End of epoch  23 | Time: 1856.96s | Train psnr   26.502 | Train Loss    0.264 | Valid psnr   26.186 | Valid Loss    0.276
+| End of epoch  25 | Time: 1552.95s | Train psnr   25.837 | Train Loss    0.261 | Valid psnr   26.216 | Valid Loss    0.276
+ End of epoch   2 | Time: 1562.51s | Train psnr   26.313 | Train Loss    0.261 | Valid psnr   26.516 | Valid Loss    0.266
+ End of epoch   3 | Time: 1835.65s | Train psnr   26.529 | Train Loss    0.258 | Valid psnr   26.564 | Valid Loss    0.261
+ End of epoch   4 | Time: 1838.33s | Train psnr   26.454 | Train Loss    0.256 | Valid psnr   26.611 | Valid Loss    0.264
+ | End of epoch   6 | Time: 1998.86s | Train psnr   26.695 | Train Loss    0.253 | Valid psnr   26.637 | Valid Loss    0.260
+| End of epoch  20 | Time: 1681.84s | Train psnr   27.302 | Train Loss    0.235 | Valid psnr   27.120 | Valid Loss    0.246
+ | End of epoch  24 | Time: 1683.11s | Train psnr   27.419 | Train Loss    0.232 | Valid psnr   27.116 | Valid Loss    0.245
+| End of epoch  26 | Time: 1784.56s | Train psnr   27.088 | Train Loss    0.233 | Valid psnr   27.074 | Valid Loss    0.245
+| End of epoch  29 | Time: 1788.80s | Train psnr   27.382 | Train Loss    0.231 | Valid psnr   27.036 | Valid Loss    0.245
+| End of epoch  33 | Time: 1678.70s | Train psnr   27.969 | Train Loss    0.220 | Valid psnr   27.206 | Valid Loss    0.240
+| End of epoch  34 | Time: 1681.48s | Train psnr   28.031 | Train Loss    0.218 | Valid psnr   27.197 | Valid Loss    0.240
+| End of epoch  35 | Time: 1770.86s | Train psnr   27.895 | Train Loss    0.219 | Valid psnr   27.253 | Valid Loss    0.239
+
+
+| End of epoch  20 | Time: 2096.75s | Train psnr   26.270 | Train Loss    0.257 | Valid psnr   26.130 | Valid Loss    0.280
+| End of epoch  21 | Time: 2116.82s | Train psnr   26.369 | Train Loss    0.260 | Valid psnr   26.190 | Valid Loss    0.279
+| End of epoch  22 | Time: 2195.87s | Train psnr   26.479 | Train Loss    0.252 | Valid psnr   26.291 | Valid Loss    0.275
+| End of epoch  24 | Time: 2177.92s | Train psnr   26.621 | Train Loss    0.247 | Valid psnr   26.387 | Valid Loss    0.273
+| End of epoch  25 | Time: 3051.95s | Train psnr   26.726 | Train Loss    0.244 | Valid psnr   26.393 | Valid Loss    0.273
+| End of epoch  26 | Time: 2161.30s | Train psnr   26.730 | Train Loss    0.242 | Valid psnr   26.447 | Valid Loss    0.271
+| End of epoch  27 | Time: 2163.25s | Train psnr   26.866 | Train Loss    0.240 | Valid psnr   26.417 | Valid Loss    0.271
+| End of epoch  21 | Time: 1908.74s | Train psnr   28.661 | Train Loss    0.213 | Valid psnr   27.129 | Valid Loss    0.248
