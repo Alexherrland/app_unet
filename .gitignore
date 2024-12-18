@@ -171,7 +171,4 @@ cython_debug/
 #.idea/
 metricas_entrenamiento
 src/metricas_entrenamiento
-src/processing/\# Habilitar la precisión mixta.py
-src/processing/normalization.py
-src/processing/PSNR.py
-src/processing/resize_images.py
+data_preparation/\# Habilitar la precisión mixta.py

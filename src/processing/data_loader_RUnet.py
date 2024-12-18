@@ -23,8 +23,8 @@ class ImageDataset(Dataset):
         - normalize: Normalización avanzada con estadísticas
         - augment: Aumento de datos con transformaciones
         """
-        self.low_img_dir = 'data/train/train_low_redimensionadas_model'
-        self.high_img_dir = 'data/train/train_high_redimensionadas_model'
+        self.low_img_dir = 'data/train/train_low_redimensionadas_modelCS'
+        self.high_img_dir = 'data/train/train_high_redimensionadas_modelCS'
         
         self.low_images = os.listdir(self.low_img_dir)
         self.high_images = os.listdir(self.high_img_dir)

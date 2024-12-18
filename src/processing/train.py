@@ -4,32 +4,7 @@ import json
 import torch
 import matplotlib.pyplot as plt
 from torcheval.metrics.functional import peak_signal_noise_ratio
-
-
-def generate_images(model, inputs, labels, epoch):
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    torch.manual_seed(66)
-    model.eval()
-    with torch.no_grad():
-        inputs, labels = inputs.to(device), labels.to(device)
-        predictions = model(inputs)
-    inputs, labels, predictions = inputs.cpu().numpy(), labels.cpu().numpy(), predictions.cpu().numpy()
-    
-    os.makedirs('training_comparisons', exist_ok=True)
-    
-    plt.figure(figsize=(15,20))
-
-    display_list = [inputs[-1].transpose((1, 2, 0)), labels[-1].transpose((1, 2, 0)), predictions[-1].transpose((1, 2, 0))]
-    title = ['Input', 'Real', 'Predicted']
-
-    for i in range(3):
-        plt.subplot(1, 3, i+1)
-        plt.title(title[i])
-        plt.imshow((display_list[i] + 1) / 2)
-        plt.axis('off')
-    
-    plt.savefig(f'training_comparisons/epoch_{epoch}_comparison.png')
-    plt.close()
+from processing.utils import mean_absolute_error, crps_gaussian, generate_images
 
 def train_epoch(model, optimizer, criterion, train_dataloader, device, scaler, epoch=0, log_interval=50):  # Agregar scaler
     model.train()
@@ -72,6 +47,8 @@ def evaluate_epoch(model, criterion, valid_dataloader, device):
     model.eval()
     total_psnr, total_count = 0, 0
     losses = []
+    mae_scores = []
+    crps_scores = []
 
     with torch.no_grad():
         for idx, (inputs, labels) in enumerate(valid_dataloader):
@@ -83,17 +60,28 @@ def evaluate_epoch(model, criterion, valid_dataloader, device):
             loss = criterion(predictions, labels)
             losses.append(loss.item())
 
+            # Calcular MAE
+            mae = mean_absolute_error(predictions, labels)
+            mae_scores.append(mae)
+
+            # Calcular CRPS
+            crps = crps_gaussian(predictions, labels)
+            crps_scores.append(crps)
 
             total_psnr +=  peak_signal_noise_ratio(predictions, labels)
             total_count += 1
 
     epoch_psnr = total_psnr / total_count
     epoch_loss = sum(losses) / len(losses)
-    return epoch_psnr, epoch_loss
+    epoch_mae = sum(mae_scores) / len(mae_scores)
+    epoch_crps = sum(crps_scores) / len(crps_scores)
+    
+    return epoch_psnr, epoch_loss, epoch_mae, epoch_crps
 
 def train_model(model, model_name, save_model, optimizer, criterion, train_dataloader, valid_dataloader, num_epochs, device, scheduler=None):
     train_psnrs, train_losses = [], []
     eval_psnrs, eval_losses = [], []
+    mae_scores, crps_scores = [], []
     best_psnr_eval = -1000
     times = []
     scaler = torch.amp.GradScaler(device)
@@ -105,9 +93,11 @@ def train_model(model, model_name, save_model, optimizer, criterion, train_datal
         train_losses.append(train_loss)
 
         # Evaluation
-        eval_psnr, eval_loss = evaluate_epoch(model, criterion, valid_dataloader, device)
+        eval_psnr, eval_loss, eval_mae, eval_crps = evaluate_epoch(model, criterion, valid_dataloader, device)
         eval_psnrs.append(eval_psnr.cpu())
         eval_losses.append(eval_loss)
+        mae_scores.append(eval_mae)
+        crps_scores.append(eval_crps)
 
         # Learning Rate Scheduler
         if scheduler is not None:
@@ -121,14 +111,15 @@ def train_model(model, model_name, save_model, optimizer, criterion, train_datal
             best_psnr_eval = eval_psnr
         times.append(time.time() - epoch_start_time)
         # Print loss, psnr end epoch
-        print("-" * 59)
+        print("-" * 89)
         print(
             "| End of epoch {:3d} | Time: {:5.2f}s | Train psnr {:8.3f} | Train Loss {:8.3f} "
-            "| Valid psnr {:8.3f} | Valid Loss {:8.3f} ".format(
-                epoch, time.time() - epoch_start_time, train_psnr, train_loss, eval_psnr, eval_loss
+            "| Valid psnr {:8.3f} | Valid Loss {:8.3f} | MAE {:8.3f} | CRPS {:8.3f}".format(
+                epoch, time.time() - epoch_start_time, train_psnr, train_loss, 
+                eval_psnr, eval_loss, eval_mae, eval_crps
             )
         )
-        print("-" * 59)
+        print("-" * 89)
 
     # Load best model
     model.load_state_dict(torch.load(save_model + f'/{model_name}.pt'))
@@ -138,6 +129,8 @@ def train_model(model, model_name, save_model, optimizer, criterion, train_datal
         'train_loss': train_losses,
         'valid_psnr': eval_psnrs,
         'valid_loss': eval_losses,
+        'mae_scores': mae_scores,
+        'crps_scores': crps_scores,
         'time': times
     }
     return model, metrics
