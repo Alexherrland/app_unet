@@ -29,8 +29,8 @@ def crps_gaussian(predictions, labels):
     - float: Valor de CRPS
     """
     # Calcular media y desviación estándar de las predicciones
-    pred_mean = predictions.mean()
-    pred_std = predictions.std()
+    pred_mean = predictions.mean().cpu().item()
+    pred_std = predictions.std().cpu().item()
     
     # Convertir a numpy para usar scipy
     labels_np = labels.cpu().numpy()

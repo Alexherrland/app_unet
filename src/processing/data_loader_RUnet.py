@@ -29,6 +29,12 @@ class ImageDataset(Dataset):
         self.low_images = os.listdir(self.low_img_dir)
         self.high_images = os.listdir(self.high_img_dir)
         
+        subset_ratio=False
+        if subset_ratio:
+            subset_size = int(len(self.low_images) * subset_ratio)
+            self.low_images = self.low_images[:subset_size]
+            self.high_images = self.high_images[:subset_size]
+
         with open(normalization_stats_path, 'r') as f:
             stats = json.load(f)
         
