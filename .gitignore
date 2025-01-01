@@ -172,3 +172,7 @@ cython_debug/
 metricas_entrenamiento
 src/metricas_entrenamiento
 data_preparation/\# Habilitar la precisión mixta.py
+evaluation_results/
+psnr/
+data_preparation/extract_framesCS.py
+data_preparation/mix_frames.py

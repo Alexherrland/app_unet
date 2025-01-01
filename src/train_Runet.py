@@ -97,7 +97,7 @@ if __name__ == "__main__":
     learning_rate = 0.0001
     optimizer = optim.AdamW
     # Creación de función de pérdida personalizada L1SSIM
-    loss_function = L1SSIMLoss(l1_weight=0.1, ssim_weight=1) 
+    loss_function = L1SSIMLoss(l1_weight=1, ssim_weight=0.1) 
     
     train(
         epochs=150,

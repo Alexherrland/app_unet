@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from torcheval.metrics.functional import peak_signal_noise_ratio
 from processing.utils import mean_absolute_error, crps_gaussian, generate_images
 
-def train_epoch(model, optimizer, criterion, train_dataloader, device, scaler, epoch=0, log_interval=50):  # Agregar scaler
+def train_epoch(model, optimizer, criterion, train_dataloader, device, scaler, epoch=0, log_interval=1500):  # Agregar scaler
     model.train()
     total_psnr, total_count = 0, 0
     losses = []
@@ -85,7 +85,7 @@ def train_model(model, model_name, save_model, optimizer, criterion, train_datal
     best_psnr_eval = -1000
     times = []
     scaler = torch.amp.GradScaler(device)
-    for epoch in range(1, num_epochs+1):
+    for epoch in range(35, num_epochs+1):
         epoch_start_time = time.time()
         # Training
         train_psnr, train_loss = train_epoch(model, optimizer, criterion, train_dataloader, device,scaler, epoch)
