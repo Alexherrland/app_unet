@@ -59,7 +59,7 @@ def train(
             optimizer, 
             mode='min',  # Reduce el LR cuando se activa
             factor=0.3,  # Cuanto se reduce la tasa de aprendizaje cuando se activa
-            patience=2,  # Cuantos epochs deben pasar hasta que se active
+            patience=4,  # Cuantos epochs deben pasar hasta que se active
             min_lr=1e-6  # Minimo LR aceptado
         )
      # Crear el dataset
@@ -96,8 +96,7 @@ if __name__ == "__main__":
     batch_size = 2
     learning_rate = 0.0001
     optimizer = optim.AdamW
-    # Creación de función de pérdida personalizada L1SSIM
-    loss_function = L1SSIMLoss(l1_weight=1, ssim_weight=0.1) 
+    loss_function = L1SSIMLoss(l1_weight=0.1, ssim_weight=1) 
     
     train(
         epochs=150,
@@ -108,5 +107,5 @@ if __name__ == "__main__":
         enable_mixed_precision = False,
         enable_scheduler = True,
         previous_model=True, 
-        previous_model_path='robustunet_model.pt',  
+        previous_model_path='robustunet_model.pt',
     )

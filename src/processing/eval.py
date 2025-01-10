@@ -100,6 +100,15 @@ def evaluate_multiple_images(model_path, image_indices, save_dir='evaluation_res
     for metric in all_metrics[0].keys():
         avg_metrics[f'avg_{metric}'] = sum(m[metric] for m in all_metrics) / len(all_metrics)
     
+    # Mostrar métricas individuales de PSNR y MAE
+    print("\nMétricas por imagen:")
+    print("-" * 50)
+    print(f"{'Imagen':<10} {'PSNR':>10} {'MAE':>10}")
+    print("-" * 50)
+    for idx, metrics in zip(image_indices, all_metrics):
+        print(f"{idx:<10} {metrics['PSNR']:>10.2f} {metrics['MAE']:>10.4f}")
+    print("-" * 50)
+    
     with open(os.path.join(save_dir, 'average_metrics.txt'), 'w') as f:
         for metric, value in avg_metrics.items():
             f.write(f'{metric}: {value}\n')
@@ -108,13 +117,16 @@ def evaluate_multiple_images(model_path, image_indices, save_dir='evaluation_res
 
 if __name__ == "__main__":
     # Evaluar una sola imagen
-    model_path = "robustunet_modelSRResidual.pt"
+    model_path = "robustunet_model.pt"
     # metrics = evaluate_single_image(model_path, image_idx=678)
     #print("Métricas para imagen individual:", metrics)
     
     # Evaluar múltiples imágenes
-    image_indices = [10, 100, 200, 300, 400]
+    image_indices = [106, 1002, 200, 300, 4004, 500, 600, 7002, 400, 
+                    1500, 2000, 2500, 3000, 3500, 4500, 5000, 5500, 6000, 
+                    150, 450, 750, 1250, 1750, 2250, 2750, 3250, 3750, 
+                    4250, 4750, 5250, 5750, 6250, 6750, 7250, 7750, 
+                    325, 875, 1625, 2375, 3125, 3875, 4625, 5375, 6125, 
+                    6875, 7625, 1875, 2625, 3375, 4875]
     avg_metrics = evaluate_multiple_images(model_path, image_indices)
-    print("Métricas promedio:", avg_metrics)
-
-
+    print("\nMétricas promedio:", avg_metrics)

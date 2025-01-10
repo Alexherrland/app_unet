@@ -4,8 +4,6 @@ data/train/
 models/
 unet_model_epoch_*.pth
 best_unet_model.pth
-*.pt
-src/processing/video_procesado.mp4
 wandb/
 training_comparisons/
 
@@ -176,3 +174,6 @@ evaluation_results/
 psnr/
 data_preparation/extract_framesCS.py
 data_preparation/mix_frames.py
+data_preparation/MAE.py
+data_preparation/PSNRUnetDeep.py
+data_preparation/PSNRUnetNormal.py

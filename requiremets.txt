@@ -2,10 +2,4 @@ torch
 torchvision
 opencv-python
 matplotlib
-Pillow
-tqdm
-wandb
 opencv-python-headless
-ffmpeg-python
-scikit-image
-wandb
