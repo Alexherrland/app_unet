@@ -1,11 +1,10 @@
 #Ignorar archivos de entrenamiento
-data/train/
-data/train/
+data/train/train_high_redimensionadas_modelCS
+data/train/train_low_redimensionadas_modelCS
 models/
 unet_model_epoch_*.pth
 best_unet_model.pth
 wandb/
-training_comparisons/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
